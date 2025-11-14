@@ -1,0 +1,56 @@
+[package]
+name = "realworld-app-dioxus-sqlite"
+version = "0.1.0"
+authors = ["santhosh7403 <skumar7403@gmail.com>"]
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+dioxus = { version = "0.6.0", features = ["router", "fullstack"] }
+dioxus-logger = {version = "0.6.0"}
+dioxus-cli-config = {version = "0.6.0"}
+
+serde = { version = "1", features = ["derive"]}
+regex = { version = "1.10" }
+sqlx = { version = "0.8", features = [
+    "runtime-tokio-rustls",
+    "sqlite",
+    "chrono",
+],optional=true}
+tracing = { version = "0.1" }
+axum = {version ="0.7", optional = true}
+tokio = { version = "1", features = ["rt-multi-thread"], optional = true }
+argon2 = { version = "0.5", features = ["std"], optional = true }
+jsonwebtoken = { version = "9", optional = true }
+uuid = { version = "1.17", features = ["v7"], optional = true }
+urlencoding = "2.1.3"
+axum-extra = { version = "0.10", optional = true }
+mail-send = { version = "0.5", optional = true }
+
+
+[features]
+default = []
+web = ["dioxus/web"]
+# desktop = ["dioxus/desktop"]
+# mobile = ["dioxus/mobile"]
+server = ["dioxus/server", "dep:sqlx", "dep:tokio", "dep:axum", "dep:argon2", "dep:jsonwebtoken", "dep:uuid","dep:axum-extra", "dep:mail-send",]
+
+[profile]
+
+[profile.wasm-dev]
+inherits = "release"
+opt-level = 'z'
+lto = true
+codegen-units = 1
+
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"
+
+# [profile.wasm-dev]
+# inherits = "dev"
+# opt-level = 1
