@@ -17,19 +17,13 @@ pub async fn profile_articles(
     let server_context = server_context();
     let request_parts: axum::http::request::Parts = server_context.extract().await?;
 
-    crate::models::Article::for_user_profile_home(
-        username, // favourites.unwrap_or_default(),
-        favourites,
-        page,
-        amount,
-        request_parts,
-    )
-    .await
-    .map_err(|x| {
-        let err = format!("Error while getting user_profile articles: {x:?}");
-        tracing::error!("{err}");
-        ServerFnError::ServerError("Could not retrieve articles, try again later".into())
-    })
+    crate::models::Article::for_user_profile_home(username, favourites, page, amount, request_parts)
+        .await
+        .map_err(|x| {
+            let err = format!("Error while getting user_profile articles: {x:?}");
+            tracing::error!("{err}");
+            ServerFnError::ServerError("Could not retrieve articles, try again later".into())
+        })
 }
 
 #[component]

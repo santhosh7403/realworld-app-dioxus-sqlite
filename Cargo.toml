@@ -32,8 +32,6 @@ mail-send = { version = "0.5", optional = true }
 [features]
 default = []
 web = ["dioxus/web"]
-# desktop = ["dioxus/desktop"]
-# mobile = ["dioxus/mobile"]
 server = ["dioxus/server", "dep:sqlx", "dep:tokio", "dep:axum", "dep:argon2", "dep:jsonwebtoken", "dep:uuid","dep:axum-extra", "dep:mail-send",]
 
 [profile]
@@ -48,9 +46,5 @@ codegen-units = 1
 [profile.server-dev]
 inherits = "dev"
 
-[profile.android-dev]
-inherits = "dev"
 
-# [profile.wasm-dev]
-# inherits = "dev"
-# opt-level = 1
+

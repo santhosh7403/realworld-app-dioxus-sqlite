@@ -7,8 +7,6 @@ pub enum EditorResponse {
     AuthError(String),
     Successful(String),
 }
-#[allow(dead_code)]
-// #[cfg_attr(feature = "hydrate", allow(dead_code))]
 #[derive(Debug)]
 struct ArticleUpdate {
     title: String,

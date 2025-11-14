@@ -1,8 +1,7 @@
-use dioxus::prelude::*;
-use dioxus::prelude::{component, rsx, Element};
-
 use crate::models::Pagination;
 use crate::PageAmount;
+use dioxus::prelude::*;
+use dioxus::prelude::{component, rsx, Element};
 
 #[component]
 pub fn ItemsPerPage(route_path: ReadOnlySignal<String>) -> Element {
@@ -12,7 +11,6 @@ pub fn ItemsPerPage(route_path: ReadOnlySignal<String>) -> Element {
     let nav = navigator();
 
     let on_change = move |ev: FormEvent| {
-        // page_amount.set(PageAmount(ev.value().parse::<i64>().unwrap_or(10)));
         let amount = ev.value().parse::<i64>().unwrap_or(10);
         page_amount.set(PageAmount(amount));
         nav.push(format!(

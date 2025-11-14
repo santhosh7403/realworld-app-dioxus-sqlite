@@ -1,6 +1,5 @@
-use dioxus::prelude::*;
-
 use crate::models::Pagination;
+use dioxus::prelude::*;
 
 #[server]
 #[tracing::instrument]
