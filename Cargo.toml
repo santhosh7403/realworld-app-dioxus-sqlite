@@ -37,14 +37,15 @@ server = ["dioxus/server", "dep:sqlx", "dep:tokio", "dep:axum", "dep:argon2", "d
 [profile]
 
 [profile.wasm-dev]
-inherits = "release"
-opt-level = 'z'
-lto = true
-codegen-units = 1
+inherits = "dev"
+opt-level = "z"
 
 
 [profile.server-dev]
 inherits = "dev"
+
+
+
 
 
 
