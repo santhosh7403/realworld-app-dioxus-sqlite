@@ -89,7 +89,7 @@ Set the DATABASE_URL env variable
 ```
 source .env
 ```
-In case of any DB issue, try the additional steps in this document [ README_DATABASE.md ](https://github.com/santhosh7403/realword-app-dioxus-sqlite/blob/main/README_DATABASE.md) to initialize, drop, or recreate database.
+In case of any DB issue, try the additional steps in this document [ README_DATABASE.md ](https://github.com/santhosh7403/realworld-app-dioxus-sqlite/blob/main/README_DATABASE.md) to initialize, drop, or recreate database.
 
 ## Run
 
@@ -134,11 +134,11 @@ The application screen looks like this
 <img width="1881" height="1029" alt="image" src="https://github.com/user-attachments/assets/c1675b96-61ef-4f71-91cf-9bcaf041cfde" />
 
 
-More screenshots are [ available here ](https://github.com/santhosh7403/realword-app-dioxus-sqlite/blob/main/App_Screenshots.md)
+More screenshots are [ available here ](https://github.com/santhosh7403/realworld-app-dioxus-sqlite/blob/main/App_Screenshots.md)
 
 
 
-To showcase the app and test it out, some sample users and data are pre-populated. User names 'user1' to 'user5' are available and the password is same as the username. If you want to remove this data, you may delete the 'basedata' files inside the `./migrations` folder and setup database as explained in [DATABASE_README.md](https://github.com/santhosh7403/realword-app-leptos-axum-sqlite/blob/main/README_DATABASE.md).
+To showcase the app and test it out, some sample users and data are pre-populated. User names 'user1' to 'user5' are available and the password is same as the username. If you want to remove this data, you may delete the 'basedata' files inside the `./migrations` folder and setup database as explained in [DATABASE_README.md](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite/blob/main/README_DATABASE.md).
 
 # Sqlite fts5 (full-text search)
 
