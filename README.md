@@ -13,8 +13,8 @@
 Some time back I published [ Leptos ](https://leptos.dev/) Rust framework based full stack demo web application as part of my Rust learning exercises. In continuation to  that, I saw an opportunity to port the same application to the [ Dioxus ](https://dioxuslabs.com/), another Rust framework, that is also one of the leading one in the Rust front-end framework [list](https://github.com/flosse/rust-web-framework-comparison?tab=readme-ov-file#frontend-frameworks-wasm). 
 
 In case anyone is interested in the above-mentioned Leptos demo app, it is available here:
-1. [ realword-app-leptos-axum sqlite ](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) 
-2. [ realword-app-leptos-axum postgres ](https://github.com/santhosh7403/realworld-app-leptos-axum)
+1. [ realworld-app-leptos-axum sqlite ](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) 
+2. [ realworld-app-leptos-axum postgres ](https://github.com/santhosh7403/realworld-app-leptos-axum)
 
 AAs before, I hope this project will serve as a valuable, hands-on example for anyone considering the Dioxus framework for their own project or wanting a peek into a more real-world working example.
 
