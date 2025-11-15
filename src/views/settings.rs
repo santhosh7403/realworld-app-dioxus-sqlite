@@ -182,7 +182,7 @@ pub fn Settings() -> Element {
             update_status.set("Passwords matched!".to_string());
             is_passwd_change.set(true);
         }
-        _ => update_status.set("Passords do mot match!".to_string()),
+        _ => update_status.set("Passords do not match!".to_string()),
     };
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
