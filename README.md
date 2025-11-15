@@ -1,4 +1,4 @@
-# A near realworld dioxus web app with sqlite backend
+# A near real-world Dioxus web app with SQLite backend
 
 
 <p align="center">
