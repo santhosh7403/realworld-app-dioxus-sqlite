@@ -79,7 +79,7 @@ Primarily you will need `rust` , `dioxus-cli` (version 0.6.3), `wasm32-unknown-u
 Clone the repo.
 
 ```
-git clone https://github.com/santhosh7403/realword-app-dioxus-sqlite.git
+git clone https://github.com/santhosh7403/realworld-app-dioxus-sqlite.git
 cd realworld-app-dioxus-sqlite
 ```
 
