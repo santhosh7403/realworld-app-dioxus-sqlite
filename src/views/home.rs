@@ -4,7 +4,11 @@ use crate::views::SearchResults;
 use crate::{components::ArticlePreviewList, models::User};
 use crate::{SearchString, SearchWindow};
 use dioxus::events::FormEvent;
+use dioxus::router::root_router;
 use dioxus::{document, prelude::*};
+
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
 
 #[component]
 pub fn Home() -> Element {
@@ -12,9 +16,11 @@ pub fn Home() -> Element {
     let _ = use_resource(move || async move {
         match crate::auth::current_user().await {
             Ok(res_user) => {
-                logged_user.set(crate::LoggedInUser(Some(res_user)));
+                logged_user.set(crate::LoggedInUser(res_user));
             }
-            Err(_) => (),
+            Err(err) => {
+                tracing::error!("Error returned while current_user : {}", err.to_string());
+            }
         }
     });
 
@@ -27,7 +33,7 @@ pub fn Home() -> Element {
 }
 
 #[component]
-pub fn HomePage(logged_user: Option<User>, route_path: ReadOnlySignal<String>) -> Element {
+pub fn HomePage(logged_user: Option<User>, route_path: ReadSignal<String>) -> Element {
     let pagination = use_context::<Signal<Pagination>>();
     let search_window = use_context::<Signal<SearchWindow>>();
     let search_string_input = use_signal(|| String::new());
@@ -107,8 +113,17 @@ fn SearchArticle(search_string_input: Signal<String>, hide_all: Signal<bool>) ->
     let mut search_string = use_context::<Signal<SearchString>>();
     let mut search_window = use_context::<Signal<SearchWindow>>();
 
+    let on_submit = move |evt: FormEvent| async move {
+        evt.prevent_default();
+        if !search_string_input().is_empty() {
+            search_string.set(SearchString(search_string_input()));
+            search_window.set(SearchWindow(true));
+            hide_all.set(true);
+        }
+    };
+
     rsx! {
-        form {
+        form { onsubmit: on_submit,
             div { class: "flex justify-end",
                 div { class: "flex justify-end",
                     input {
@@ -123,15 +138,7 @@ fn SearchArticle(search_string_input: Signal<String>, hide_all: Signal<bool>) ->
                     }
                     input { r#type: "hidden", name: "page", value: 0 }
                     input { r#type: "hidden", name: "amount", value: 10 }
-                    button {
-                        class: "absolute pr-3 cursor-pointer hover:text-blue-500 transition duration-200 py-1",
-                        onclick: move |_| {
-                            if !search_string_input().is_empty() {
-                                search_string.set(SearchString(search_string_input()));
-                                search_window.set(SearchWindow(true));
-                                hide_all.set(true);
-                            }
-                        },
+                    button { class: "absolute pr-3 cursor-pointer hover:text-blue-500 transition duration-200 py-1",
                         i { class: "fas fa-magnifying-glass" }
                     }
                 }
@@ -142,7 +149,7 @@ fn SearchArticle(search_string_input: Signal<String>, hide_all: Signal<bool>) ->
 
 use crate::models::article::Article;
 
-#[server]
+#[post("/api/home_articles",header: TypedHeader<Cookie>)]
 pub async fn home_articles(
     page: i64,
     amount: i64,
@@ -150,23 +157,20 @@ pub async fn home_articles(
     my_feed: bool,
 ) -> Result<Vec<Article>, ServerFnError> {
     dioxus_logger::tracing::info!("Starting home_articles");
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
 
-    Ok(
-        Article::for_home_page(page, amount, tag, my_feed, request_parts)
-            .await
-            .map_err(|x| {
-                tracing::error!("problem while fetching home articles: {x:?}");
-                ServerFnError::new("Problem while fetching home articles")
-            })?,
-    )
+    Ok(Article::for_home_page(page, amount, tag, my_feed, header)
+        .await
+        .map_err(|x| {
+            tracing::error!("problem while fetching home articles: {x:?}");
+            ServerFnError::new("Problem while fetching home articles")
+        })?)
 }
 
 #[component]
 fn YourFeedTab(logged_user: Option<User>) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let page_amount = use_context::<Signal<crate::PageAmount>>();
+    let search_window = use_context::<Signal<SearchWindow>>();
 
     let nav = navigator();
 
@@ -190,7 +194,7 @@ fn YourFeedTab(logged_user: Option<User>) -> Element {
 
     rsx! {
         button {
-            disabled: logged_user.is_none(),
+            disabled: logged_user.is_none() || search_window().0,
             onclick: on_click,
             r#type: "button",
             class: format!(
@@ -212,6 +216,7 @@ fn YourFeedTab(logged_user: Option<User>) -> Element {
 fn GlobalFeedTab() -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let page_amount = use_context::<Signal<crate::PageAmount>>();
+    let search_window = use_context::<Signal<SearchWindow>>();
 
     let nav = navigator();
     let on_click = move |_| {
@@ -233,6 +238,7 @@ fn GlobalFeedTab() -> Element {
 
     rsx! {
         button {
+            disabled: search_window().0,
             onclick: on_click,
             r#type: "button",
             class: format!(
@@ -311,7 +317,7 @@ async fn get_tags() -> Result<Vec<String>, ServerFnError> {
     })
     .map_err(|x| {
         tracing::error!("problem while fetching tags: {x:?}");
-        ServerFnError::ServerError("Problem while fetching tags".into())
+        ServerFnError::new("Problem while fetching tags")
     })
 }
 
@@ -322,8 +328,14 @@ fn TagList() -> Element {
 
     let tag_list = use_resource(move || async move { get_tags().await });
 
-    let on_submit = move |ev: FormEvent| {
-        let tag = ev.values()["tag"].as_value();
+    let on_submit = move |evt: FormEvent| {
+        evt.prevent_default();
+        let tag_data = evt.values().into_iter().filter(|d| d.0 == "tag").last();
+        let tag = match tag_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+
         nav.push(pagination().set_tag(&tag).reset_page().to_string());
         let router_context = root_router();
         let mut route_string = String::new();

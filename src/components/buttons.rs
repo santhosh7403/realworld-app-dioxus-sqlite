@@ -1,19 +1,17 @@
 use crate::models::Pagination;
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
 use dioxus::prelude::*;
 
-#[server]
 #[tracing::instrument]
+#[post("/api/fav_action", header: TypedHeader<Cookie>)]
 pub async fn fav_action(slug: String) -> Result<bool, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-    let Some(username) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError(
-            "You need to be authenticated".into(),
-        ));
+    let Some(username) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new("You need to be authenticated"));
     };
     toggle_fav(slug, username).await.map_err(|x| {
         tracing::error!("problem while updating the database: {x:?}");
-        ServerFnError::ServerError("error while updating the follow".into())
+        ServerFnError::new("error while updating the follow")
     })
 }
 
@@ -50,13 +48,20 @@ async fn toggle_fav(slug: String, username: String) -> Result<bool, sqlx::Error>
 }
 
 #[component]
-pub fn ButtonFav(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) -> Element {
+pub fn ButtonFav(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> Element {
     let mut fav = use_signal(|| article_detail().article.fav);
     let mut fav_count = use_signal(|| article_detail().article.favorites_count);
     let pagination = use_context::<Signal<Pagination>>();
 
     let on_submit = move |evt: FormEvent| async move {
-        let res = fav_action(evt.values()["slug"].as_value()).await;
+        evt.prevent_default();
+        let slug_data = evt.values().into_iter().filter(|d| d.0 == "slug").last();
+        let slug = match slug_data {
+            Some((_, FormValue::Text(slug))) => slug,
+            _ => String::new(),
+        };
+
+        let res = fav_action(slug).await;
         match res {
             Ok(_) => {
                 fav.set(!fav());
@@ -66,7 +71,9 @@ pub fn ButtonFav(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) 
                     fav_count.set(fav_count() - 1)
                 }
             }
-            Err(_) => (),
+            Err(err) => {
+                tracing::error!("Error returned while fav_action : {}", err.to_string());
+            }
         }
     };
 
@@ -82,7 +89,6 @@ pub fn ButtonFav(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) 
                     }
                 }
             } else {
-                // if fav() {
                 div { class: "flex items-center gap-2",
                     form { onsubmit: on_submit,
                         input {
@@ -116,9 +122,7 @@ pub fn ButtonFav(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) 
 }
 
 #[component]
-pub fn ButtonFavFavourited(
-    article_detail: ReadOnlySignal<crate::views::ArticleDetailed>,
-) -> Element {
+pub fn ButtonFavFavourited(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> Element {
     rsx! {
 
         div {
@@ -138,19 +142,15 @@ pub fn ButtonFavFavourited(
     }
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/follow_action", header: TypedHeader<Cookie>)]
 pub async fn follow_action(other_user: String) -> Result<bool, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-    let Some(username) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError(
-            "You need to be authenticated".into(),
-        ));
+    let Some(username) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new("You need to be authenticated"));
     };
     toggle_follow(username, other_user).await.map_err(|x| {
         tracing::error!("problem while updating the database: {x:?}");
-        ServerFnError::ServerError("error while updating the follow".into())
+        ServerFnError::new("error while updating the follow")
     })
 }
 
@@ -187,14 +187,15 @@ async fn toggle_follow(current: String, other: String) -> Result<bool, sqlx::Err
 }
 
 #[component]
-pub fn ButtonFollow(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) -> Element {
+pub fn ButtonFollow(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> Element {
     let mut button_disable = use_signal(|| false);
     let mut mouse_hover = use_signal(|| false);
     let mut button_icon = use_signal(|| String::new());
     let mut button_text = use_signal(|| String::new());
     let mut button_class = use_signal(|| String::new());
     let mut is_following = use_signal(|| article_detail().article.author.following);
-    let on_submit = move |_| async move {
+    let on_submit = move |evt: FormEvent| async move {
+        evt.prevent_default();
         button_disable.set(true);
         let res = follow_action(article_detail().article.author.username).await;
         match res {

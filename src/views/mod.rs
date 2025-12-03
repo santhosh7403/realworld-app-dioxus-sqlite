@@ -8,7 +8,7 @@ mod editor;
 pub use editor::Editor;
 
 mod article;
-pub use article::{Article, ArticleDetailed, SearchArticle};
+pub use article::{Article, ArticleDetailed};
 
 mod user_profile;
 pub use user_profile::Profile;

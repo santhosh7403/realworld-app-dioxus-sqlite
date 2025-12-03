@@ -1,11 +1,12 @@
 use dioxus::prelude::*;
 
+use dioxus::router::root_router;
 use views::{Home, Profile};
 use views::{Login, ResetPasswd, Settings, SignUp};
 
 use crate::models::{Pagination, User};
+use crate::views::Article;
 use crate::views::Editor;
-use crate::views::{Article, SearchArticle};
 
 mod views;
 
@@ -27,8 +28,6 @@ enum Route {
         NewArticle {},
         #[route("/article/:slug")]
         Article {slug: String },
-        #[route("/search/article/:slug")]
-        SearchArticle {slug: String},
         #[route("/editor/:slug")]
         Editor{slug: String},
         #[route("/login")]
@@ -56,7 +55,7 @@ fn main() {
     #[cfg(feature = "web")]
     {
         dioxus::launch(App);
-        use tracing::Level;
+        // use tracing::Level;
         // dioxus_logger::init(Level::INFO).expect("failed to init logger");
     }
     #[cfg(feature = "server")]
@@ -86,7 +85,8 @@ async fn launch_server(_component: fn() -> Element) {
     let address = SocketAddr::new(ip, port);
     let listener = tokio::net::TcpListener::bind(address).await.unwrap();
     let router = axum::Router::new()
-        .serve_dioxus_application(ServeConfig::new().unwrap(), App)
+        .serve_dioxus_application(ServeConfig::new(), App)
+        // .serve_dioxus_application(ServeConfig::new().unwrap(), App)
         .layer(axum::middleware::from_fn(crate::auth::auth_middleware))
         .into_make_service();
 
@@ -167,8 +167,9 @@ fn NavBar() -> Element {
     let mut logged_user = use_context::<Signal<LoggedInUser>>();
     let nav = navigator();
 
-    let on_submit = move |_| async move {
-        match auth::logout_action().await {
+    let on_submit = move |evt: FormEvent| async move {
+        evt.prevent_default();
+        match auth::logout().await {
             Ok(_) => {
                 logged_user.set(LoggedInUser(None));
                 nav.replace(crate::Route::Home {});

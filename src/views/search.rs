@@ -1,11 +1,13 @@
 use dioxus::prelude::*;
 
-#[server]
+#[tracing::instrument]
+#[post("/api/search_fetch_results")]
 pub async fn search_fetch_results(
     search: String,
     page: i64,
     amount: i64,
 ) -> Result<((i64, i64, i64), Vec<crate::models::MatchedArticles>), ServerFnError> {
+    dioxus::logger::tracing::info!("Starting search op");
     if search.is_empty() {
         Err(ServerFnError::new("Empty search string, hence ignore"))
     } else {
@@ -186,7 +188,7 @@ fn SearchViewList(
 }
 
 #[component]
-fn SearchArticleView(slug: ReadOnlySignal<String>) -> Element {
+fn SearchArticleView(slug: ReadSignal<String>) -> Element {
     let article_resource =
         use_resource(move || async move { crate::views::article::get_article(slug()).await });
 
@@ -232,7 +234,7 @@ fn SearchArticleView(slug: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-fn ArticleMetaSearchView(article_detail: ReadOnlySignal<super::ArticleDetailed>) -> Element {
+fn ArticleMetaSearchView(article_detail: ReadSignal<super::ArticleDetailed>) -> Element {
     rsx! {
         div {
             div { class: "flex items-center gap-4 text-gray-700",

@@ -2,9 +2,10 @@ use crate::models::Pagination;
 use crate::PageAmount;
 use dioxus::prelude::*;
 use dioxus::prelude::{component, rsx, Element};
+use dioxus::router::root_router;
 
 #[component]
-pub fn ItemsPerPage(route_path: ReadOnlySignal<String>) -> Element {
+pub fn ItemsPerPage(route_path: ReadSignal<String>) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let mut page_amount = use_context::<Signal<crate::PageAmount>>();
 

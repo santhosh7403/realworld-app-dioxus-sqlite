@@ -1,6 +1,9 @@
 use dioxus::{document, prelude::*};
 
-use crate::LoggedInUser;
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+
+use crate::{auth::logout, LoggedInUser};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
@@ -11,7 +14,7 @@ pub enum SettingsUpdateError {
 }
 
 #[tracing::instrument]
-#[server]
+#[post("/api/settings_update", header: TypedHeader<Cookie>)]
 pub async fn settings_update(
     image: String,
     bio: String,
@@ -19,7 +22,7 @@ pub async fn settings_update(
     password: String,
     confirm_password: String,
 ) -> Result<SettingsUpdateError, ServerFnError> {
-    let user = get_user().await?;
+    let user = get_user(header).await?;
     let username = user.username();
     let user = match update_user_validation(user, image, bio, email, password, &confirm_password) {
         Ok(x) => x,
@@ -34,7 +37,7 @@ pub async fn settings_update(
                 username,
                 x.to_string()
             );
-            ServerFnError::ServerError("Problem while updating user".into())
+            ServerFnError::new("Problem while updating user")
         })
 }
 
@@ -65,12 +68,9 @@ fn update_user_validation(
 }
 
 #[cfg(feature = "server")]
-async fn get_user() -> Result<crate::models::User, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-
-    let Some(username) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError(
+async fn get_user(header: TypedHeader<Cookie>) -> Result<crate::models::User, ServerFnError> {
+    let Some(username) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new(
             "You need to be authenticated".to_string(),
         ));
     };
@@ -78,14 +78,13 @@ async fn get_user() -> Result<crate::models::User, ServerFnError> {
     crate::models::User::get(username).await.map_err(|x| {
         let err = x.to_string();
         tracing::error!("problem while getting the user {err}");
-        ServerFnError::ServerError(err)
+        ServerFnError::new(err)
     })
 }
 
-#[tracing::instrument]
-#[server]
+#[get("/api/settings_get", header: TypedHeader<Cookie>)]
 pub async fn settings_get() -> Result<crate::models::User, ServerFnError> {
-    get_user().await
+    get_user(header).await
 }
 
 #[component]
@@ -151,6 +150,7 @@ pub fn Settings() -> Element {
                 if is_passwd_change() {
                     let mut logged_user = use_context::<Signal<LoggedInUser>>();
                     logged_user.set(LoggedInUser(None));
+                    let _ = logout().await;
                     let nav = navigator();
                     nav.replace(crate::Route::Login {});
                 }

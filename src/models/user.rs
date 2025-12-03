@@ -22,7 +22,7 @@ pub struct User {
     bio: Option<String>,
     image: Option<String>,
 }
-
+#[cfg(feature = "server")]
 static EMAIL_REGEX: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
 
 impl User {
@@ -43,6 +43,7 @@ impl User {
         self.image.clone()
     }
 
+    #[cfg(feature = "server")]
     pub fn set_password(mut self, password: String) -> Result<Self, String> {
         if password.len() < 4 {
             return Err("You need to provide a stronger password".into());
@@ -51,6 +52,7 @@ impl User {
         Ok(self)
     }
 
+    #[cfg(feature = "server")]
     pub fn set_username(mut self, username: String) -> Result<Self, String> {
         if username.len() < 4 {
             return Err(format!(
@@ -61,12 +63,14 @@ impl User {
         Ok(self)
     }
 
+    #[cfg(feature = "server")]
     fn validate_email(email: &str) -> bool {
         EMAIL_REGEX
             .get_or_init(|| regex::Regex::new(r"^[\w\-\.]+@([\w-]+\.)+\w{2,4}$").unwrap())
             .is_match(email)
     }
 
+    #[cfg(feature = "server")]
     pub fn set_email(mut self, email: String) -> Result<Self, String> {
         if !Self::validate_email(&email) {
             return Err(format!(
@@ -77,6 +81,7 @@ impl User {
         Ok(self)
     }
 
+    #[cfg(feature = "server")]
     pub fn set_bio(mut self, bio: String) -> Result<Self, String> {
         static BIO_MIN: usize = 10;
         if bio.is_empty() {
@@ -89,6 +94,7 @@ impl User {
         Ok(self)
     }
 
+    #[cfg(feature = "server")]
     #[inline]
     pub fn set_image(mut self, image: String) -> Result<Self, String> {
         if image.is_empty() {

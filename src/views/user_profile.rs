@@ -2,10 +2,12 @@ use crate::{
     components::{ArticlePreviewList, ItemsPerPage, PrevNextButton},
     models::Pagination,
 };
-use dioxus::{document, prelude::*};
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+use dioxus::{document, prelude::*, router::root_router};
 
-#[server]
 #[tracing::instrument]
+#[post("/api/profile_articles", header: TypedHeader<Cookie>)]
 pub async fn profile_articles(
     username: String,
     favourites: bool,
@@ -14,28 +16,28 @@ pub async fn profile_articles(
 ) -> Result<Vec<crate::models::Article>, ServerFnError> {
     let page = i64::from(page);
     let amount = i64::from(amount);
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
 
-    crate::models::Article::for_user_profile_home(username, favourites, page, amount, request_parts)
+    crate::models::Article::for_user_profile_home(username, favourites, page, amount, header)
         .await
         .map_err(|x| {
             let err = format!("Error while getting user_profile articles: {x:?}");
             tracing::error!("{err}");
-            ServerFnError::ServerError("Could not retrieve articles, try again later".into())
+            ServerFnError::new("Could not retrieve articles, try again later")
         })
 }
 
 #[component]
-pub fn Profile(profile_user: ReadOnlySignal<String>) -> Element {
+pub fn Profile(profile_user: ReadSignal<String>) -> Element {
     let mut logged_user = use_context::<Signal<crate::LoggedInUser>>();
 
     let _ = use_resource(move || async move {
         match crate::auth::current_user().await {
             Ok(res_user) => {
-                logged_user.set(crate::LoggedInUser(Some(res_user)));
+                logged_user.set(crate::LoggedInUser(res_user));
             }
-            Err(_) => (),
+            Err(err) => {
+                tracing::error!("Error returned while current_user : {}", err.to_string());
+            }
         }
     });
 
@@ -52,10 +54,7 @@ pub fn Profile(profile_user: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-pub fn ProfilePage(
-    profile_user: ReadOnlySignal<String>,
-    route_path: ReadOnlySignal<String>,
-) -> Element {
+pub fn ProfilePage(profile_user: ReadSignal<String>, route_path: ReadSignal<String>) -> Element {
     let pagination = use_context::<Signal<Pagination>>();
     let logged_user = use_context::<Signal<crate::LoggedInUser>>();
 
@@ -135,7 +134,7 @@ fn BackToHome() -> Element {
 }
 
 #[component]
-fn UserArticlesTab(user: ReadOnlySignal<String>) -> Element {
+fn UserArticlesTab(user: ReadSignal<String>) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let page_amount = use_context::<Signal<crate::PageAmount>>();
 
@@ -178,7 +177,7 @@ fn UserArticlesTab(user: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-fn FavouritedArticlesTab(user: ReadOnlySignal<String>) -> Element {
+fn FavouritedArticlesTab(user: ReadSignal<String>) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let page_amount = use_context::<Signal<crate::PageAmount>>();
 
@@ -218,7 +217,7 @@ fn FavouritedArticlesTab(user: ReadOnlySignal<String>) -> Element {
 }
 
 #[component]
-fn UserInfo(user: ReadOnlySignal<String>) -> Element {
+fn UserInfo(user: ReadSignal<String>) -> Element {
     let user_resource = use_resource(move || async move { user_profile(user()).await });
     rsx! {
 
@@ -279,8 +278,8 @@ pub struct UserProfileModel {
     following: Option<bool>,
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/user_profile", header: TypedHeader<Cookie>)]
 pub async fn user_profile(username: String) -> Result<UserProfileModel, ServerFnError> {
     let user = crate::models::User::get(username.clone())
         .await
@@ -290,11 +289,9 @@ pub async fn user_profile(username: String) -> Result<UserProfileModel, ServerFn
             ServerFnError::new("Could not retrieve articles, try again later")
         })?;
     let mut following = None;
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
 
-    if let Some(logged_user) = crate::auth::get_username(request_parts) {
-        if sqlx::query_scalar!(
+    if let Some(logged_user) = crate::auth::get_username_from_cookie(header) {
+        let count: i64 = sqlx::query_scalar!(
             "
             Select count(*) from Follows where follower=$2 and influencer=$1
             ",
@@ -302,9 +299,13 @@ pub async fn user_profile(username: String) -> Result<UserProfileModel, ServerFn
             logged_user
         )
         .fetch_one(crate::database::server::get_db())
-        .await?
-            == 1
-        {
+        .await
+        .map_err(|x| {
+            let err = format!("Error while checking follow status: {x:?}");
+            tracing::error!("{err}");
+            ServerFnError::new("Could not check follow status")
+        })?;
+        if count == 1 {
             following = Some(true);
         }
     }

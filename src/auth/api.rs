@@ -1,5 +1,6 @@
 #[cfg(feature = "server")]
 use argon2::{password_hash::PasswordVerifier, Argon2};
+use dioxus::fullstack::{SetCookie, SetHeader};
 use dioxus::prelude::*;
 
 #[derive(serde::Deserialize, Clone, serde::Serialize)]
@@ -9,7 +10,10 @@ pub enum SignupResponse {
     Success,
 }
 
-#[tracing::instrument]
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+
+#[cfg(feature = "server")]
 pub fn validate_signup(
     username: String,
     email: String,
@@ -21,22 +25,15 @@ pub fn validate_signup(
         .set_email(email)
 }
 
-#[tracing::instrument]
 #[server]
 pub async fn signup_action(
     username: String,
     email: String,
     password: String,
 ) -> Result<SignupResponse, ServerFnError> {
-    match validate_signup(username.clone(), email, password) {
+    match validate_signup(username.clone(), email, password.clone()) {
         Ok(user) => match user.insert().await {
-            Ok(_) => {
-                let server_context = server_context();
-                let mut resp = server_context.response_parts_mut();
-
-                crate::auth::set_username(username, &mut resp.headers).await;
-                Ok(SignupResponse::Success)
-            }
+            Ok(_) => Ok(SignupResponse::Success),
             Err(x) => {
                 let x = x.to_string();
                 Ok(if x.contains("UNIQUE constraint failed: Users.email") {
@@ -55,74 +52,87 @@ pub async fn signup_action(
     }
 }
 
-#[server]
-#[tracing::instrument]
-pub async fn login_action(username: String, password: String) -> Result<String, ServerFnError> {
-    let server_context = server_context();
-    let mut resp = server_context.response_parts_mut();
-    // dioxus_logger::tracing::info!("login triggered in api");
+#[post("/api/logout", header: TypedHeader<Cookie>)]
+pub async fn logout() -> Result<SetHeader<SetCookie>> {
+    Ok(SetHeader::new(format!(
+        "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ))?)
+}
 
-    let hash_pass_row = sqlx::query!("SELECT password FROM Users where username=$1", username)
+#[post("/api/login")]
+pub async fn login(username: String, password: String) -> ServerFnResult<SetHeader<SetCookie>> {
+    let hash_pass_row = match sqlx::query!("SELECT password FROM Users where username=$1", username)
         .fetch_one(crate::database::server::get_db())
         .await
-        .map_err(|err| {
-            tracing::debug!("DB err: {}", err);
-            resp.status = axum::http::StatusCode::FORBIDDEN;
-            // response_options.set_status(axum::http::StatusCode::FORBIDDEN);
-            ServerFnError::new("Unsuccessful: User not available".to_string())
-        })?;
+    {
+        Ok(row) => row,
+        Err(err) => {
+            tracing::error!("DB err: {}", err);
+            return Err(ServerFnError::ServerError {
+                message: "Invalid username or password".to_string(),
+                code: 401,
+                details: serde_json::json!("Invalid username or password").into(),
+            });
+        }
+    };
 
-    let parsed_hash =
-        argon2::password_hash::PasswordHash::new(&hash_pass_row.password).map_err(|_| {
-            // response_options.set_status(axum::http::StatusCode::FORBIDDEN);
-            resp.status = axum::http::StatusCode::FORBIDDEN;
-            ServerFnError::new("Unsuccessful: Hash error".to_string())
-        })?;
+    let parsed_hash = match argon2::password_hash::PasswordHash::new(&hash_pass_row.password) {
+        Ok(hash) => hash,
+        Err(err) => {
+            tracing::error!("Failed to hash password: {}", err);
+            return Err(ServerFnError::new(
+                "Unexpected error occured while login, please try later",
+            ));
+        }
+    };
 
     let argon2 = Argon2::default();
     if argon2
         .verify_password(password.as_bytes(), &parsed_hash)
         .is_ok()
     {
-        crate::auth::set_username(username, &mut resp.headers).await;
-        use crate::server_fn::redirect;
-        redirect::call_redirect_hook("/");
-        Ok("Successful".to_string())
+        let token = match crate::auth::encode_token(crate::auth::TokenClaims {
+            sub: username,
+            exp: (sqlx::types::chrono::Utc::now().timestamp() as usize) + 3_600_000,
+        }) {
+            Ok(token) => token,
+            Err(err) => {
+                tracing::error!("Token encode error: {}", err);
+                return Err(ServerFnError::new(
+                    "Unexpected error occured while login, please try later",
+                ));
+            }
+        };
+        let header = match SetHeader::new(format!("token={}; path=/; HttpOnly", token)) {
+            Ok(h) => h,
+            Err(err) => {
+                tracing::error!("failed to construct SetHeader: {}", err);
+                return Err(ServerFnError::new(
+                    "Unexpected error occured while login, please try later",
+                ));
+            }
+        };
+        Ok(header)
     } else {
-        // response_options.set_status(axum::http::StatusCode::FORBIDDEN);
-        resp.status = axum::http::StatusCode::FORBIDDEN;
-
-        Err(ServerFnError::new(
-            "Unsuccessful: Password not matching".to_string(),
-        ))
+        Err(ServerFnError::ServerError {
+            message: "Invalid username or password".to_string(),
+            code: 401,
+            details: serde_json::json!("Invalid username or password").into(),
+        })
     }
 }
 
-#[server]
 #[tracing::instrument]
-pub async fn logout_action() -> Result<(), ServerFnError> {
-    let server_context = server_context();
-    let mut resp = server_context.response_parts_mut();
-
-    resp.headers.insert(
-        axum::http::header::SET_COOKIE,
-        axum::http::HeaderValue::from_str(crate::auth::REMOVE_COOKIE)
-            .expect("header value couldn't be set"),
-    );
-    Ok(())
-}
-
-#[server]
-#[tracing::instrument]
-pub async fn current_user() -> Result<crate::models::User, ServerFnError> {
-    let server_context = server_context();
-    let req: axum::http::request::Parts = server_context.extract().await?;
-
-    let Some(logged_user) = super::get_username(req) else {
-        return Err(ServerFnError::ServerError("you must be logged in".into()));
+#[post("/api/current_user", header: TypedHeader<Cookie>)]
+pub async fn current_user() -> Result<Option<crate::models::User>, ServerFnError> {
+    let Some(logged_user) = super::get_username_from_cookie(header) else {
+        return Ok(None);
     };
-    crate::models::User::get(logged_user).await.map_err(|err| {
-        tracing::error!("problem while retrieving current_user: {err:?}");
-        ServerFnError::ServerError("you must be logged in".into())
-    })
+    Ok(crate::models::User::get(logged_user)
+        .await
+        .map_err(|err| {
+            tracing::error!("problem while retrieving current_user: {err:?}");
+            ServerFnError::new("Problem while retrieving current user")
+        })
+        .ok())
 }

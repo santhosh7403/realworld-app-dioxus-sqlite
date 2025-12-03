@@ -1,5 +1,8 @@
 use dioxus::prelude::*;
 
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+
 #[derive(serde::Deserialize, Clone, serde::Serialize)]
 pub enum EditorResponse {
     ValidationError(String),
@@ -7,6 +10,7 @@ pub enum EditorResponse {
     AuthError(String),
     Successful(String),
 }
+#[cfg(feature = "server")]
 #[derive(Debug)]
 struct ArticleUpdate {
     title: String,
@@ -114,8 +118,8 @@ async fn update_article(
     Ok(slug)
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/editor_action", header: TypedHeader<Cookie>)]
 pub async fn editor_action(
     title: String,
     description: String,
@@ -123,10 +127,7 @@ pub async fn editor_action(
     tag_list: String,
     slug: String,
 ) -> Result<EditorResponse, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-
-    let Some(author) = crate::auth::get_username(request_parts) else {
+    let Some(author) = crate::auth::get_username_from_cookie(header) else {
         return Ok(EditorResponse::AuthError(
             "you should be authenticated".to_string(),
         ));
@@ -137,7 +138,8 @@ pub async fn editor_action(
     };
     match update_article(author, slug, article).await {
         Ok(x) => {
-            crate::server_fn::redirect::call_redirect_hook("/article/{x}");
+            // crate::server_fn::redirect::call_redirect_hook("/article/{x}");
+            let _ = dioxus_fullstack::Redirect::to("/article/{x}");
 
             Ok(EditorResponse::Successful(x))
         }
@@ -163,21 +165,47 @@ pub fn Editor(slug: String) -> Element {
                         edit_article.set(res);
                     }
 
-                    Err(_) => (),
+                    Err(err) => {
+                        tracing::error!("Error returned while get_article : {}", err.to_string());
+                    }
                 }
             }
         });
     }
 
     let on_submit = move |evt: FormEvent| async move {
-        let res = editor_action(
-            evt.values()["title"].as_value(),
-            evt.values()["description"].as_value(),
-            evt.values()["body"].as_value(),
-            evt.values()["tag_list"].as_value(),
-            edit_article().article.slug,
-        )
-        .await;
+        evt.prevent_default();
+        let title_data = evt.values().into_iter().filter(|d| d.0 == "title").last();
+        let title = match title_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+        let description_data = evt
+            .values()
+            .into_iter()
+            .filter(|d| d.0 == "description")
+            .last();
+        let description = match description_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+        let body_data = evt.values().into_iter().filter(|d| d.0 == "body").last();
+        let body = match body_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+
+        let tags_data = evt
+            .values()
+            .into_iter()
+            .filter(|d| d.0 == "tag_list")
+            .last();
+        let tags = match tags_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+
+        let res = editor_action(title, description, body, tags, edit_article().article.slug).await;
 
         match res {
             Ok(EditorResponse::Successful(_)) => {

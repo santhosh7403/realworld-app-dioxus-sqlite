@@ -8,16 +8,35 @@ pub fn Login() -> Element {
     let mut login_status = use_signal(|| String::new());
 
     let on_submit = move |evt: FormEvent| async move {
-        let login_result = auth::login_action(
-            evt.values()["username"].as_value(),
-            evt.values()["password"].as_value(),
-        )
-        .await;
+        evt.prevent_default();
+        let username_data = evt
+            .values()
+            .into_iter()
+            .filter(|d| d.0 == "username")
+            .last();
+        let username = match username_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+
+        let password_data = evt
+            .values()
+            .into_iter()
+            .filter(|d| d.0 == "password")
+            .last();
+        let password = match password_data {
+            Some((_, FormValue::Text(value))) => value,
+            _ => String::new(),
+        };
+        let login_result = auth::login(username.clone(), password).await;
 
         match login_result {
-            Ok(_) => {
-                nav.replace(crate::Route::Home {});
-            }
+            Ok(_) => match auth::current_user().await {
+                Ok(Some(user)) if user.username() == username => {
+                    nav.replace(crate::Route::Home {});
+                }
+                _ => login_status.set("Login failed! : username or password incorrect".to_string()),
+            },
             Err(err) => {
                 tracing::debug!("login failed! : {err}");
                 login_status.set("Login failed! : username or password incorrect".to_string())
@@ -76,9 +95,6 @@ pub fn Login() -> Element {
                         button { class: "bg-blue-700 hover:bg-blue-800 px-5 py-2 text-white rounded-lg",
                             "Signin"
                         }
-
-                        p { class: "block text-red-700 text-sm font-bold", {login_status()} }
-
                         button {
                             class: "bg-gray-300 hover:bg-gray-400 px-5 py-2 text-white rounded-lg",
                             r#type: "button",
@@ -96,6 +112,9 @@ pub fn Login() -> Element {
                             href: "/reset_password",
                             "Forgot password?"
                         }
+                    }
+                    div {
+                        p { class: "block text-red-700 text-sm font-bold", {login_status()} }
                     }
                 }
             }

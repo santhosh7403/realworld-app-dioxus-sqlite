@@ -1,7 +1,7 @@
 use dioxus::{document, prelude::*};
 use std::env;
 
-use crate::LoggedInUser;
+use crate::{auth::logout, LoggedInUser};
 
 #[cfg(feature = "server")]
 #[allow(dead_code)]
@@ -15,7 +15,8 @@ struct EmailCredentials {
 static EMAIL_CREDS: std::sync::OnceLock<EmailCredentials> = std::sync::OnceLock::new();
 
 #[tracing::instrument]
-#[server]
+// #[server]
+#[post("/api/reset_password_1", headers: dioxus::fullstack::HeaderMap)]
 pub async fn reset_password_1(email: String) -> Result<String, ServerFnError> {
     if let Err(x) = crate::models::User::get_email(email.clone()).await {
         let err = format!("Bad email ID: Provided email not found.");
@@ -27,10 +28,8 @@ pub async fn reset_password_1(email: String) -> Result<String, ServerFnError> {
             passwd: env::var("MAILER_PASSWD").unwrap(),
             smtp_server: env::var("MAILER_SMTP_SERVER").unwrap(),
         });
-        let server_context = server_context();
-        let parts = server_context.request_parts();
-
-        let host = parts.headers["host"].to_str().unwrap_or_default();
+        // dioxus::logger::tracing::info!("the header is {headers:?}");
+        let host = headers.get("host").unwrap().to_str().unwrap();
         let scheme = if cfg!(debug_assertions) {
             "http"
         } else {
@@ -41,7 +40,12 @@ pub async fn reset_password_1(email: String) -> Result<String, ServerFnError> {
             exp: (sqlx::types::chrono::Utc::now().timestamp() as usize) + 3_600,
         })
         .unwrap();
-        let uri = format!("{}://{}/reset_password?token={}", scheme, host, token);
+        let uri = format!(
+            "{}://{}/reset_password?token={}",
+            scheme,
+            host.to_owned(),
+            token
+        );
         // Build a simple multipart message
         let message = mail_send::mail_builder::MessageBuilder::new()
             .from(("Realworld Dioxus", creds.email.as_str()))
@@ -113,7 +117,7 @@ pub async fn reset_password_2(
 }
 
 #[component]
-pub fn ResetPasswd(token: ReadOnlySignal<String>) -> Element {
+pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
     let mut passwd_visible = use_signal(|| false);
     let mut reset_status = use_signal(|| String::new());
     let mut email = use_signal(|| String::new());
@@ -131,9 +135,12 @@ pub fn ResetPasswd(token: ReadOnlySignal<String>) -> Element {
             let reset_res2 = reset_password_2(token(), passwd(), confirm_passwd()).await;
             match reset_res2 {
                 Ok(msg) => {
+                    let _ = logout().await;
                     reset_status.set(msg);
                     let mut logged_user = use_context::<Signal<LoggedInUser>>();
                     logged_user.set(LoggedInUser(None));
+                    let nav = navigator();
+                    nav.replace(crate::Route::Login {});
                 }
                 Err(err) => reset_status.set(err.to_string()),
             }
@@ -142,11 +149,7 @@ pub fn ResetPasswd(token: ReadOnlySignal<String>) -> Element {
 
     let on_cancel = move |_| {
         let nav = navigator();
-        if nav.can_go_back() {
-            nav.go_back();
-        } else {
-            nav.replace(crate::Route::Home {});
-        }
+        nav.replace(crate::Route::Home {});
     };
 
     use_effect(move || {
@@ -279,18 +282,7 @@ pub fn ResetPasswd(token: ReadOnlySignal<String>) -> Element {
                     button {
                         class: "bg-blue-700 hover:bg-blue-800 px-5 py-3 text-white rounded-lg disabled:bg-gray-400 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-700",
                         onclick: on_cancel,
-                        {
-                            format!(
-                                "{}",
-                                if reset_status().starts_with("Password successfully changed")
-                                    || reset_status().starts_with("Email sent")
-                                {
-                                    "Back to Home"
-                                } else {
-                                    "Cancel"
-                                },
-                            )
-                        }
+                        "Cancel"
                     }
                 }
             }

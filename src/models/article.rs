@@ -1,6 +1,9 @@
 use super::UserPreview;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+
 #[derive(Serialize, Deserialize, Clone, Default, Debug, PartialEq)]
 pub struct Article {
     pub slug: String,
@@ -24,10 +27,9 @@ impl Article {
         amount: i64,
         tag: String,
         my_feed: bool,
-        request_parts: axum::http::request::Parts,
+        header: TypedHeader<Cookie>,
     ) -> Result<Vec<Self>, sqlx::Error> {
-        // let username: Option<String> = None;
-        let username = crate::auth::get_username(request_parts);
+        let username = crate::auth::get_username_from_cookie(header);
         let offset = page * amount;
         sqlx::query!(
             "
@@ -96,9 +98,9 @@ LIMIT $1 OFFSET $2",
         favourites: bool,
         page: i64,
         amount: i64,
-        request_parts: axum::http::request::Parts,
+        header: TypedHeader<Cookie>,
     ) -> Result<Vec<Self>, sqlx::Error> {
-        let logged_user = crate::auth::get_username(request_parts);
+        let logged_user = crate::auth::get_username_from_cookie(header);
         let offset = page * amount;
         sqlx::query!(
                 "
@@ -155,9 +157,9 @@ LIMIT $1 OFFSET $2",
     #[cfg(feature = "server")]
     pub async fn for_article(
         slug: String,
-        request_parts: axum::http::request::Parts,
+        header: TypedHeader<Cookie>,
     ) -> Result<Self, sqlx::Error> {
-        let username = crate::auth::get_username(request_parts);
+        let username = crate::auth::get_username_from_cookie(header);
         sqlx::query!(
                 r#"
         SELECT

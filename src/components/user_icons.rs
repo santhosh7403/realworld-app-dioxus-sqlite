@@ -41,7 +41,7 @@ pub fn CommentUserIcon(comment: crate::models::Comment) -> Element {
 }
 
 #[component]
-pub fn CurrentUserIcon(article_detail: ReadOnlySignal<crate::views::ArticleDetailed>) -> Element {
+pub fn CurrentUserIcon(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> Element {
     rsx! {
         div { class: "flex gap-4 text-gray-600",
             div {

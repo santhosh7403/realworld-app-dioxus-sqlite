@@ -12,24 +12,24 @@ pub fn SignUp() -> Element {
 
     let on_cancel = move |_| {
         let nav = navigator();
-        nav.replace(crate::Route::Home {});
+        if nav.can_go_back() {
+            nav.go_back();
+        } else {
+            nav.replace(crate::Route::Home {});
+        }
     };
 
     let on_click = move |_| async move {
         if signup_status().starts_with("Signup Successful") {
             let nav = navigator();
-            if nav.can_go_back() {
-                nav.go_back();
-            } else {
-                nav.replace(crate::Route::Home {});
-            }
+            nav.replace(crate::Route::Login {});
         } else {
             let res_signup = crate::auth::signup_action(username(), email(), password()).await;
 
             match res_signup {
                 Ok(SignupResponse::Success) => {
                     signup_status.set("Signup Successful".to_string());
-                    create_button_string.set("Back To Home".to_string());
+                    create_button_string.set("Login to Account Created?".to_string());
                 }
                 Ok(SignupResponse::ValidationError(validation_error)) => {
                     signup_status.set(format!("Problem while validating: {validation_error}."))

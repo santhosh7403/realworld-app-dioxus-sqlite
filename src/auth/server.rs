@@ -5,6 +5,9 @@ use axum::{
 use jsonwebtoken::{decode, DecodingKey, Validation};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
+
 static AUTH_COOKIE: &str = "token";
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -24,7 +27,6 @@ pub async fn auth_middleware(
     req: Request<axum::body::Body>,
     next: axum::middleware::Next,
 ) -> Response {
-    // dioxus_logger::tracing::info!("inside auth with req = {:?}", req);
     match get_username_from_headers(req.headers()) {
         Some(username) => {
             let Ok(_) = crate::models::User::get(username.clone()).await else {
@@ -90,7 +92,6 @@ pub(crate) fn encode_token(token_claims: TokenClaims) -> jsonwebtoken::errors::R
 
 #[tracing::instrument]
 pub(crate) fn get_username_from_headers(headers: &axum::http::HeaderMap) -> Option<String> {
-    // dioxus_logger::tracing::info!("header - {:?}", headers.clone());
     headers.get(header::COOKIE).and_then(|x| {
         x.to_str()
             .unwrap()
@@ -101,23 +102,12 @@ pub(crate) fn get_username_from_headers(headers: &axum::http::HeaderMap) -> Opti
     })
 }
 
-#[tracing::instrument]
-pub fn get_username(req: axum::http::request::Parts) -> Option<String> {
-    // dioxus_logger::tracing::info!("header - {:?}", req.headers.clone());
-    get_username_from_headers(&req.headers)
-}
+pub fn get_username_from_cookie(header: TypedHeader<Cookie>) -> Option<String> {
+    let token = header.get("token");
 
-#[tracing::instrument]
-pub async fn set_username(username: String, headers: &mut axum::http::HeaderMap) -> bool {
-    let token = encode_token(TokenClaims {
-        sub: username,
-        exp: (sqlx::types::chrono::Utc::now().timestamp() as usize) + 3_600_000,
-    })
-    .unwrap();
-    headers.insert(
-        header::SET_COOKIE,
-        header::HeaderValue::from_str(&format!("{AUTH_COOKIE}={token}; path=/; HttpOnly"))
-            .expect("header value couldn't be set"),
-    );
-    true
+    if let Some(token) = token {
+        decode_token(token).map(|jwt| jwt.claims.sub).ok()
+    } else {
+        None
+    }
 }

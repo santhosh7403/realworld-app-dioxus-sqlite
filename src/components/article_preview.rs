@@ -1,18 +1,26 @@
 use crate::components::{AuthorUserIcon, ButtonFav, ButtonFavFavourited, ButtonFollow};
 use crate::models::article::Article;
 use crate::models::{Pagination, User};
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
 use dioxus::prelude::*;
+use dioxus::router::root_router;
 
 #[component]
 pub fn ArticlePreviewList(
-    articles: ReadOnlySignal<Vec<Article>>,
+    articles: ReadSignal<Vec<Article>>,
     logged_user: Option<User>,
 ) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let nav = navigator();
 
-    let on_submit = move |ev: FormEvent| {
-        let tag = ev.values()["tag"].as_value();
+    let on_submit = move |evt: FormEvent| {
+        evt.prevent_default();
+        let tag_data = evt.values().into_iter().filter(|d| d.0 == "tag").last();
+        let tag = match tag_data {
+            Some((_, FormValue::Text(tag))) => tag,
+            _ => String::new(),
+        };
         nav.push(pagination().set_tag(&tag).to_string());
         let router_context = root_router();
         let mut route_string = String::new();
@@ -77,7 +85,7 @@ pub fn ArticlePreviewList(
 
 #[component]
 pub fn ArticleMeta(
-    article_detail: ReadOnlySignal<crate::views::ArticleDetailed>,
+    article_detail: ReadSignal<crate::views::ArticleDetailed>,
     is_preview: bool,
 ) -> Element {
     let is_owner = use_signal(|| {
@@ -91,7 +99,8 @@ pub fn ArticleMeta(
     let nav = navigator();
     let pagination = use_context::<Signal<Pagination>>();
     let mut delete_status = use_signal(|| String::new());
-    let on_submit = move |_| async move {
+    let on_submit = move |evt: FormEvent| async move {
+        evt.prevent_default();
         let res = delete_article(article_detail().article.slug).await;
 
         match res {
@@ -169,14 +178,11 @@ pub fn ArticleMeta(
     }
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/delete_article", header: TypedHeader<Cookie>)]
 pub async fn delete_article(slug: String) -> Result<bool, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-
-    let Some(logged_user) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError("you must be logged in".into()));
+    let Some(logged_user) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new("you must be logged in"));
     };
 
     crate::models::Article::delete(slug, logged_user)
@@ -185,6 +191,6 @@ pub async fn delete_article(slug: String) -> Result<bool, ServerFnError> {
         .map_err(|x| {
             let err = format!("Error while deleting an article: {x:?}");
             tracing::error!("{err}");
-            ServerFnError::ServerError("Could not delete the article, try again later".into())
+            ServerFnError::new("Could not delete the article, try again later")
         })
 }

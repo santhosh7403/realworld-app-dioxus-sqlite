@@ -1,4 +1,6 @@
 use crate::components::{AuthorUserIcon, CommentUserIcon, CurrentUserIcon};
+#[cfg(feature = "server")]
+use dioxus::fullstack::{Cookie, TypedHeader};
 use dioxus::prelude::*;
 
 use crate::components::ArticleMeta;
@@ -9,32 +11,32 @@ pub struct ArticleDetailed {
     pub logged_user: Option<crate::models::User>,
 }
 
-#[server]
 #[tracing::instrument]
-pub async fn get_article(slug: String) -> Result<ArticleDetailed, ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-
+#[post("/api/get_article",  header: TypedHeader<Cookie>)]
+pub async fn get_article(slug: String) -> ServerFnResult<ArticleDetailed> {
     Ok(ArticleDetailed {
-        article: crate::models::Article::for_article(slug, request_parts)
+        article: crate::models::Article::for_article(slug, header.clone())
             .await
             .map_err(|x| {
                 let err = format!("Error while getting user_profile articles: {x:?}");
                 tracing::error!("{err}");
                 ServerFnError::new("Could not retrieve articles, try again later")
             })?,
-        logged_user: crate::auth::current_user().await.ok(),
+        logged_user: crate::auth::current_user().await.unwrap(),
     })
 }
 
-#[server]
-#[tracing::instrument]
-pub async fn post_comment(slug: String, body: String) -> Result<(), ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-
-    let Some(logged_user) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError("you must be logged in".into()));
+#[post("/api/post_comment", header: TypedHeader<Cookie>)]
+pub async fn post_comment(slug: String, body: String) -> ServerFnResult<()> {
+    let Some(logged_user) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::ServerError {
+            message: "you must be logged in".to_string(),
+            code: 401,
+            details: serde_json::json!(format!(
+                "Unauthorized: you must be logged to do this change"
+            ))
+            .into(),
+        });
     };
 
     crate::models::Comment::insert(slug, logged_user, body)
@@ -43,27 +45,32 @@ pub async fn post_comment(slug: String, body: String) -> Result<(), ServerFnErro
         .map_err(|x| {
             let err = format!("Error while posting a comment: {x:?}");
             tracing::error!("{err}");
-            ServerFnError::ServerError("Could not post a comment, try again later".into())
+            ServerFnError::new("Could not post a comment, try again later")
         })
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/get_comments")]
 pub async fn get_comments(slug: String) -> Result<Vec<crate::models::Comment>, ServerFnError> {
     crate::models::Comment::get_all(slug).await.map_err(|x| {
-        let err = format!("Error while posting a comment: {x:?}");
+        let err = format!("Error while getting comments: {x:?}");
         tracing::error!("{err}");
-        ServerFnError::ServerError("Could not post a comment, try again later".into())
+        ServerFnError::new("Error while getting comments, try again later")
     })
 }
 
-#[server]
 #[tracing::instrument]
+#[post("/api/delete_comment", header: TypedHeader<Cookie>)]
 pub async fn delete_comment(id: i32) -> Result<(), ServerFnError> {
-    let server_context = server_context();
-    let request_parts: axum::http::request::Parts = server_context.extract().await?;
-    let Some(logged_user) = crate::auth::get_username(request_parts) else {
-        return Err(ServerFnError::ServerError("you must be logged in".into()));
+    let Some(logged_user) = crate::auth::get_username_from_cookie(header) else {
+        return Err(ServerFnError::ServerError {
+            message: "you must be logged in".to_string(),
+            code: 401,
+            details: serde_json::json!(format!(
+                "Unauthorized: you must be logged to do this change"
+            ))
+            .into(),
+        });
     };
 
     crate::models::Comment::delete(id, logged_user)
@@ -72,19 +79,19 @@ pub async fn delete_comment(id: i32) -> Result<(), ServerFnError> {
         .map_err(|x| {
             let err = format!("Error while posting a comment: {x:?}");
             tracing::error!("{err}");
-            ServerFnError::ServerError("Could not post a comment, try again later".into())
+            ServerFnError::new("Could not delete comment, try again later")
         })
 }
 
-#[component]
-pub fn SearchArticle(slug: String) -> Element {
-    rsx! {
-        Article { slug, force_home: Some(true) }
-    }
-}
+// #[component]
+// pub fn SearchArticle(slug: String) -> Element {
+//     rsx! {
+//         Article { slug, force_home: Some(true) }
+//     }
+// }
 
 #[component]
-pub fn Article(slug: ReadOnlySignal<String>, force_home: Option<bool>) -> Element {
+pub fn Article(slug: ReadSignal<String>) -> Element {
     let article_resource = use_resource(move || {
         let value = slug();
         async move { get_article(value).await }
@@ -115,7 +122,7 @@ pub fn Article(slug: ReadOnlySignal<String>, force_home: Option<bool>) -> Elemen
                                     AuthorUserIcon { user: article_detail.article.author.clone() }
                                 }
                                 div {
-                                    BackToButton { is_top: true, force_home }
+                                    BackToButton { is_top: true }
                                 }
                             }
                             div { class: "mb-5",
@@ -126,7 +133,7 @@ pub fn Article(slug: ReadOnlySignal<String>, force_home: Option<bool>) -> Elemen
                             CommentSection { article_detail: (*article_detail).clone(), article_resource: article_resource }
                         }
 
-                        BackToButton { is_top: false, force_home }
+                        BackToButton { is_top: false }
                     }
                 }
             },
@@ -141,7 +148,7 @@ pub fn Article(slug: ReadOnlySignal<String>, force_home: Option<bool>) -> Elemen
 }
 
 #[component]
-fn BackToButton(is_top: bool, force_home: Option<bool>) -> Element {
+fn BackToButton(is_top: bool) -> Element {
     let nav = navigator();
 
     rsx! {
@@ -153,7 +160,7 @@ fn BackToButton(is_top: bool, force_home: Option<bool>) -> Element {
                     if is_top { "top-0 left-0" } else { "bottom-4 right-4" },
                 ),
                 onclick: move |_| {
-                    if nav.can_go_back() && force_home.unwrap_or_default() {
+                    if nav.can_go_back(){
                         nav.go_back();
                     } else {
                         nav.push(crate::Route::Home {});
@@ -167,7 +174,7 @@ fn BackToButton(is_top: bool, force_home: Option<bool>) -> Element {
 
 #[component]
 pub fn CommentSection(
-    article_detail: ReadOnlySignal<ArticleDetailed>,
+    article_detail: ReadSignal<ArticleDetailed>,
     article_resource: Resource<Result<ArticleDetailed, ServerFnError>>,
 ) -> Element {
     let mut comment_post_status = use_signal(|| String::new());
@@ -181,16 +188,26 @@ pub fn CommentSection(
                 Ok(comments) => {
                     comments_result.set(comments);
                 }
-                Err(_) => (),
+                Err(err) => {
+                    tracing::error!("Error returned while get_comments : {}", err.to_string());
+                }
             }
         }
     });
     let on_submit = move |evt: FormEvent| async move {
-        let res = post_comment(
-            evt.values()["slug"].as_value(),
-            evt.values()["body"].as_value(),
-        )
-        .await;
+        evt.prevent_default();
+        let slug_data = evt.values().into_iter().filter(|d| d.0 == "slug").last();
+        let slug = match slug_data {
+            Some((_, FormValue::Text(slug))) => slug,
+            _ => String::new(),
+        };
+        let body_data = evt.values().into_iter().filter(|d| d.0 == "body").last();
+        let body = match body_data {
+            Some((_, FormValue::Text(body))) => body,
+            _ => String::new(),
+        };
+
+        let res = post_comment(slug, body).await;
 
         match res {
             Ok(_) => {
@@ -205,7 +222,13 @@ pub fn CommentSection(
     };
 
     let on_submit_delete = move |evt: FormEvent| async move {
-        let _ = delete_comment(evt.values()["id"].as_value().parse::<i32>().unwrap()).await;
+        evt.prevent_default();
+        let id_data = evt.values().into_iter().filter(|d| d.0 == "id").last();
+        let id = match id_data {
+            Some((_, FormValue::Text(id))) => id,
+            _ => String::new(),
+        };
+        let _ = delete_comment(id.parse::<i32>().unwrap()).await;
         comments_fut.restart();
         article_resource.restart();
     };
@@ -232,6 +255,7 @@ pub fn CommentSection(
                     CurrentUserIcon { article_detail }
                     div { class: "px-2",
                         button {
+                            disabled: new_comment_data().len() < 3,
                             class: format!(
                                 "rounded px-1 py-1 text-sm font-medium text-white {}",
                                 if new_comment_data().len() < 3 {

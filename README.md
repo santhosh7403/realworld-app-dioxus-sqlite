@@ -36,13 +36,12 @@ This app includes:
 - uuid
 - tailwindcss
 - fontawesome icons
-## Important Note
-Please take special note: This web app was developed with Dioxus stable version 0.6.3. This app specifically requires Dioxus crates and dioxus-cli version 0.6.3 to function correctly, even though version 0.7.x is now available. This requirement will be noted wherever applicable.
+
 
 # Install and run
 
 ## Tools
-Primarily you will need `rust` , `dioxus-cli` (version 0.6.3), `wasm32-unknown-unknown` and standard system dependencies.
+Primarily you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and standard system dependencies.
 
 1. Install Rust compiler and `stable` toolchain.
 
@@ -66,14 +65,9 @@ Primarily you will need `rust` , `dioxus-cli` (version 0.6.3), `wasm32-unknown-u
 4. Install `dioxus-cli` (forcing version 0.6.3, otherwise the latest stable will install). In case of any issue, Please refer [here.](https://dioxuslabs.com/learn/0.6/getting_started/#install-the-dioxus-cli)
 
     ```
-    cargo binstall dioxus-cli@0.6.3
+    cargo binstall dioxus-cli
     ```
-5. Verify `dioxus-cli` version is 0.6.3
 
-    ```
-    dx --version
-    dioxus 0.6.3 (fc1f1c2)
-    ```
 
 ## Clone
 Clone the repo.
@@ -98,23 +92,41 @@ You may now build and run the application:
 dx serve
 ```
 ```
-santhosh@fedora:~/realworld-app-dioxus-sqlite$ dx serve
-18:20:48 [dev] -----------------------------------------------------------------
-                Serving your Dioxus app: realworld-app-dioxus-sqlite
+santhosh@fedora:~/my_github_repos/realworld-app-dioxus-sqlite$ dx serve
+warning: Waiting for cargo-metadata...
+15:03:09 [dev] -----------------------------------------------------------------
+                Serving your app: realworld-app-dioxus-sqlite-dx-71! 🚀
                 • Press `ctrl+c` to exit the server
                 • Press `r` to rebuild the app
                 • Press `p` to toggle automatic rebuilds
                 • Press `v` to toggle verbose logging
                 • Press `/` for more commands and shortcuts
-                Learn more at https://dioxuslabs.com/learn/0.6/getting_started
+                Learn more at https://dioxuslabs.com/learn/0.7/getting_started
                ---------------------------------------------------------------- 
-18:20:51 [dev] Build completed successfully in 2977ms, launching app! 💫
-19:26:59 [dev] [200] /?tag=&my_feed=false&page=0&amount=10&favourites=false
-19:26:59 [dev] [200] /.well-known/appspecific/com.chrome.devtools.json
-19:26:59 [server]  INFO Starting home_articles
-19:26:59 [dev] [200] /api/current_user11478213334994857979
-19:26:59 [dev] [200] /api/home_articles1555142514643990174
-19:27:00 [dev] [200] /api/get_tags15996924839965382525
+15:05:44 [dev] Build completed successfully in 154624ms, launching app! 💫 
+15:05:45 [server]  INFO Registering server function: POST /api/editor_action
+15:05:45 [server]  INFO Registering server function: POST /api/search_fetch_results
+15:05:45 [server]  INFO Registering server function: POST /api/delete_article
+15:05:45 [server]  INFO Registering server function: POST /api/current_user
+15:05:45 [server]  INFO Registering server function: POST /api/login
+15:05:45 [server]  INFO Registering server function: POST /api/logout
+15:05:45 [server]  INFO Registering server function: POST /api/signup_action9269776427574912722
+15:05:45 [server]  INFO Registering server function: POST /api/delete_comment
+15:05:45 [server]  INFO Registering server function: POST /api/get_comments
+15:05:45 [server]  INFO Registering server function: POST /api/post_comment
+15:05:45 [server]  INFO Registering server function: POST /api/get_article
+15:05:45 [server]  INFO Registering server function: POST /api/follow_action
+15:05:45 [server]  INFO Registering server function: POST /api/fav_action
+15:05:45 [server]  INFO Registering server function: POST /api/reset_password_213529242004652721604
+15:05:45 [server]  INFO Registering server function: POST /api/reset_password_1
+15:05:45 [server]  INFO Registering server function: GET /api/settings_get
+15:05:45 [server]  INFO Registering server function: POST /api/settings_update
+15:05:45 [server]  INFO Registering server function: POST /api/get_tags10263263092093384903
+15:05:45 [server]  INFO Registering server function: POST /api/home_articles
+15:05:45 [server]  INFO Registering server function: POST /api/user_profile
+15:05:45 [server]  INFO Registering server function: POST /api/profile_articles
+15:05:58 [server]  INFO redirecting
+
 ╭────────────────────────────────────────────────────────────────────────────────────────── /:more ╮
 │  App:     ━━━━━━━━━━━━━━━━━━━━━━━━━━  🎉 3.1s      Platform: Web + fullstack                     │
 │  Server:  ━━━━━━━━━━━━━━━━━━━━━━━━━━  🎉 3.1s      App features: ["web"]                         │
@@ -147,9 +159,9 @@ The Full-Text Search feature covers three fields from the articles table. If you
 
 # Tailwind CSS
 
-The styling of this application UI uses Tailwind CSS. Tailwind allows you to style your elements with CSS utility classes. The `input.css` file in project root folder links where the source files are located and the `tailwind.css` file in assets folder where the generated output CSS.
+The styling of this application UI uses Tailwind CSS. Tailwind allows you to style your elements with CSS utility classes. The `tailwind.css` file in project root folder links where the source files are located and the `tailwind.css` file in assets folder where the generated output CSS.
 
-The output tailwind.css is generated from source CSS utility classes using a standalone Tailwind CSS CLI binary. there are other options available; please refer to this [link for other options.](https://dioxuslabs.com/learn/0.6/cookbook/tailwind)
+The output tailwind.css is generated from source CSS utility classes using a standalone Tailwind CSS CLI binary. there are other options available; please refer to this [link for other options.](https://dioxuslabs.com/learn/0.7/guides/utilities/tailwind)
 
 The standalone Tailwind css utility can be downloaded from [here.](https://github.com/tailwindlabs/tailwindcss/releases)
 

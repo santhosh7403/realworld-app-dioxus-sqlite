@@ -1,10 +1,10 @@
 use crate::models::Pagination;
-use dioxus::prelude::*;
+use dioxus::{prelude::*, router::root_router};
 
 #[component]
 pub fn PrevNextButton(
-    articles: ReadOnlySignal<Vec<crate::models::Article>>,
-    route_path: ReadOnlySignal<String>,
+    articles: ReadSignal<Vec<crate::models::Article>>,
+    route_path: ReadSignal<String>,
 ) -> Element {
     let mut pagination = use_context::<Signal<Pagination>>();
     let nav = navigator();
