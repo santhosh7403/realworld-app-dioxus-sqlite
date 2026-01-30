@@ -135,6 +135,15 @@ fn App() -> Element {
             amount: page_amount().0,
         });
     });
+
+    use_effect(move || {
+        let logged_user = use_context::<Signal<LoggedInUser>>();
+        let mut page_amount = use_context::<Signal<crate::PageAmount>>();
+        if let Some(user) = logged_user().0 {
+            page_amount.set(crate::PageAmount(user.per_page_amount()));
+        }
+    });
+
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }

@@ -27,6 +27,9 @@ pub fn ItemsPerPage(route_path: ReadSignal<String>) -> Element {
         if pagination() != Pagination::from(route_string.clone()) {
             pagination.set(Pagination::from(route_string.clone()));
         }
+        spawn(async move {
+            let _ = crate::auth::update_per_page_amount(amount as u32).await;
+        });
     };
     rsx! {
         div {

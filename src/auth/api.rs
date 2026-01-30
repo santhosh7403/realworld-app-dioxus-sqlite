@@ -25,7 +25,7 @@ pub fn validate_signup(
         .set_email(email)
 }
 
-#[server]
+#[post("/api/signup_action")]
 pub async fn signup_action(
     username: String,
     email: String,
@@ -52,7 +52,29 @@ pub async fn signup_action(
     }
 }
 
-#[post("/api/logout", header: TypedHeader<Cookie>)]
+#[post("/api/update_per_page_amount", header: TypedHeader<Cookie>)]
+pub async fn update_per_page_amount(amount: u32) -> Result<(), ServerFnError> {
+    let Some(username) = super::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new("not logged in"));
+    };
+
+    let user = crate::models::User::get(username).await.map_err(|e| {
+        tracing::error!("Failed to get user: {}", e);
+        ServerFnError::new("failed to get user")
+    })?;
+
+    user.set_per_page_amount(amount as i64)
+        .update_per_page_amount()
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to update preference: {}", e);
+            ServerFnError::new("failed to update preference")
+        })?;
+
+    Ok(())
+}
+
+#[post("/api/logout", _header: TypedHeader<Cookie>)]
 pub async fn logout() -> Result<SetHeader<SetCookie>> {
     Ok(SetHeader::new(format!(
         "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT"

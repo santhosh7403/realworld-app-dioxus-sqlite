@@ -15,7 +15,6 @@ struct EmailCredentials {
 static EMAIL_CREDS: std::sync::OnceLock<EmailCredentials> = std::sync::OnceLock::new();
 
 #[tracing::instrument]
-// #[server]
 #[post("/api/reset_password_1", headers: dioxus::fullstack::HeaderMap)]
 pub async fn reset_password_1(email: String) -> Result<String, ServerFnError> {
     if let Err(x) = crate::models::User::get_email(email.clone()).await {

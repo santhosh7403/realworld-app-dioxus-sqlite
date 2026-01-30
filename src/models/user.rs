@@ -12,6 +12,10 @@ pub struct UserPreview {
     pub following: bool,
 }
 
+fn default_per_page() -> i64 {
+    10
+}
+
 #[derive(Debug, Default, Deserialize, Serialize, Clone, PartialEq)]
 pub struct User {
     pub username: String,
@@ -21,6 +25,8 @@ pub struct User {
     email: String,
     bio: Option<String>,
     image: Option<String>,
+    #[serde(default = "default_per_page")]
+    per_page_amount: i64,
 }
 #[cfg(feature = "server")]
 static EMAIL_REGEX: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
@@ -29,6 +35,10 @@ impl User {
     #[inline]
     pub fn username(&self) -> String {
         self.username.to_string()
+    }
+    #[inline]
+    pub fn per_page_amount(&self) -> i64 {
+        self.per_page_amount
     }
     #[inline]
     pub fn email(&self) -> String {
@@ -109,10 +119,17 @@ impl User {
     }
 
     #[cfg(feature = "server")]
+    #[inline]
+    pub fn set_per_page_amount(mut self, amount: i64) -> Self {
+        self.per_page_amount = amount;
+        self
+    }
+
+    #[cfg(feature = "server")]
     pub async fn get(username: String) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
             Self,
-            "SELECT username, email, bio, image, password FROM users WHERE username=$1",
+            "SELECT username, email, bio, image, password, per_page_amount FROM users WHERE username=$1",
             username
         )
         .fetch_one(crate::database::server::get_db())
@@ -123,7 +140,7 @@ impl User {
     pub async fn get_email(email: String) -> Result<Self, sqlx::Error> {
         sqlx::query_as!(
             Self,
-            "SELECT username, email, bio, image, password FROM users WHERE email=$1",
+            "SELECT username, email, bio, image, password, per_page_amount FROM users WHERE email=$1",
             email
         )
         .fetch_one(crate::database::server::get_db())
@@ -145,10 +162,11 @@ impl User {
             };
 
         sqlx::query!(
-            "INSERT INTO Users(username, email, password) VALUES ($1, $2, $3)",
+            "INSERT INTO Users(username, email, password, per_page_amount) VALUES ($1, $2, $3, $4)",
             self.username,
             self.email,
             hashed_password,
+            self.per_page_amount
         )
         .execute(crate::database::server::get_db())
         .await
@@ -184,6 +202,19 @@ WHERE username=$1",
             self.email,
             password_is_some,
             hashed_password,
+        )
+        .execute(crate::database::server::get_db())
+        .await
+    }
+
+    #[cfg(feature = "server")]
+    pub async fn update_per_page_amount(
+        &self,
+    ) -> Result<sqlx::sqlite::SqliteQueryResult, sqlx::Error> {
+        sqlx::query!(
+            "UPDATE Users SET per_page_amount=$2 WHERE username=$1",
+            self.username,
+            self.per_page_amount,
         )
         .execute(crate::database::server::get_db())
         .await
