@@ -3,7 +3,7 @@ use dioxus::prelude::*;
 #[component]
 pub fn AuthorUserIcon(user: crate::models::UserPreview) -> Element {
     rsx! {
-        div { class: "flex gap-4 text-gray-600",
+        div { class: "flex gap-4 text-gray-600 dark:text-gray-400",
             a { href: format!("/profile/{}", user.username.clone()),
                 img { class: "w-10 h-10 rounded-full", src: user.image }
             }
@@ -13,7 +13,7 @@ pub fn AuthorUserIcon(user: crate::models::UserPreview) -> Element {
                     span { class: "font-medium", {user.username.clone()} }
                 }
             }
-        
+
         }
     }
 }
@@ -21,7 +21,7 @@ pub fn AuthorUserIcon(user: crate::models::UserPreview) -> Element {
 #[component]
 pub fn CommentUserIcon(comment: crate::models::Comment) -> Element {
     rsx! {
-        div { class: "flex gap-4 text-gray-600",
+        div { class: "flex gap-4 text-gray-600 dark:text-gray-400",
             div {
                 a { href: format!("/profile/{}", comment.username.clone()),
                     img {
@@ -43,7 +43,7 @@ pub fn CommentUserIcon(comment: crate::models::Comment) -> Element {
 #[component]
 pub fn CurrentUserIcon(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> Element {
     rsx! {
-        div { class: "flex gap-4 text-gray-600",
+        div { class: "flex gap-4 text-gray-600 dark:text-gray-400",
             div {
                 a { href: format!("/profile/{}", article_detail().logged_user.unwrap_or_default().username()),
                     img {

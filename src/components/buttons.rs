@@ -83,7 +83,7 @@ pub fn ButtonFav(article_detail: ReadSignal<crate::views::ArticleDetailed>) -> E
                 == article_detail().article.author.username
             {
                 div { class: "flex items-center gap-2",
-                    button { class: "text-gray-600 ",
+                    button { class: "text-gray-600 dark:text-gray-400",
                         i { class: "far fa-star" }
                         span { class: "cursor-not-allowed", " My Favourite" }
                     }

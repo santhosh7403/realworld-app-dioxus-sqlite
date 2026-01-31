@@ -50,9 +50,9 @@ pub fn SignUp() -> Element {
 
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
-            div { class: "block rounded-lg bg-white w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
+            div { class: "block rounded-lg bg-white dark:bg-gray-800 w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
 
-                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800",
+                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800 dark:text-gray-200",
                     "Create an account."
                 }
                 document::Title { "Account Creation" }
@@ -64,14 +64,14 @@ pub fn SignUp() -> Element {
 
                 form {
                     label {
-                        class: "block text-gray-700 text-sm font-bold mb-2",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2",
                         r#for: "username",
                         "User Name"
                     }
 
                     div { class: "mb-5",
                         input {
-                            class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                             id: "username",
                             name: "username",
                             r#type: "text",
@@ -82,14 +82,14 @@ pub fn SignUp() -> Element {
                     }
 
                     label {
-                        class: "block text-gray-700 text-sm font-bold mb-2",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2",
                         r#for: "email",
                         "Email"
                     }
 
                     div { class: "mb-5",
                         input {
-                            class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                             id: "email",
                             name: "email",
                             r#type: "email",
@@ -99,14 +99,14 @@ pub fn SignUp() -> Element {
                         }
                     }
                     label {
-                        class: "block text-gray-700 text-sm font-bold mb-2",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2",
                         r#for: "password",
                         "Password"
                     }
 
                     div { class: "mb-5 relative",
                         input {
-                            class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                             id: "password",
                             name: "password",
                             r#type: format!("{}", if passwd_visible() { "text" } else { "password" }),
@@ -115,7 +115,7 @@ pub fn SignUp() -> Element {
                             oninput: move |evt| password.set(evt.value()),
                         }
                         span {
-                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500",
+                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500 dark:text-gray-400",
                             onclick: move |_| passwd_visible.toggle(),
                             i { class: format!("{}", if passwd_visible() { "far fa-eye" } else { "far fa-eye-slash" }) }
                         }
@@ -130,7 +130,7 @@ pub fn SignUp() -> Element {
                         }
                         button {
                             r#type: "button",
-                            class: "bg-gray-300 hover:bg-gray-400 px-5 py-3 text-white rounded-lg",
+                            class: "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 px-5 py-3 text-white rounded-lg",
                             onclick: on_cancel,
                             "Cancel"
                         }

@@ -46,7 +46,7 @@ pub fn PrevNextButton(
             button {
                 onclick: on_click_prev,
                 r#type: "button",
-                class: "px-4 cursor-pointer hover:text-blue-500 border rounded-full bg-gray-100 text-gray-800",
+                class: "px-4 cursor-pointer hover:text-blue-500 border dark:border-gray-600 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200",
                 "<< Previous page      "
             }
         }
@@ -54,7 +54,7 @@ pub fn PrevNextButton(
             button {
                 onclick: on_click_next,
                 r#type: "button",
-                class: "px-4 cursor-pointer hover:text-blue-500 border rounded-full bg-gray-100 text-gray-800",
+                class: "px-4 cursor-pointer hover:text-blue-500 border dark:border-gray-600 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200",
                 "Next page >>"
             }
         }
@@ -70,7 +70,7 @@ pub fn SearchViewPrevNextButton(page_data: (i64, i64, i64)) -> Element {
         div { class: "flex gap-2 justify-end",
             if page > 0 {
                 button {
-                    class: "px-4 cursor-pointer rounded-full border hover:text-blue-500",
+                    class: "px-4 cursor-pointer rounded-full border dark:border-gray-600 hover:text-blue-500 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200",
                     onclick: move |_| {
                         search_meta
                             .set(crate::SearchMeta {
@@ -88,7 +88,7 @@ pub fn SearchViewPrevNextButton(page_data: (i64, i64, i64)) -> Element {
             {
                 div {
                     button {
-                        class: "px-4 cursor-pointer rounded-full border hover:text-blue-500",
+                        class: "px-4 cursor-pointer rounded-full border dark:border-gray-600 hover:text-blue-500 bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200",
                         onclick: move |_| {
                             search_meta
                                 .set(crate::SearchMeta {

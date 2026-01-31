@@ -103,10 +103,10 @@ pub fn SearchResults(search_string_input: Signal<String>, hide_all: Signal<bool>
                 }
             }
             Some(Err(e)) => rsx! {
-                div { class: "text-gray-800", "Failed to load: {e}" }
+                div { class: "text-gray-800 dark:text-gray-200", "Failed to load: {e}" }
             },
             None => rsx! {
-                div { class: "text-gray-800", "Loading Articles..." }
+                div { class: "text-gray-800 dark:text-gray-200", "Loading Articles..." }
             },
         }
     }
@@ -126,7 +126,7 @@ fn SearchViewList(
     });
 
     rsx! {
-        div { class: "mb-2 p-4 bg-white rounded-lg shadow-md",
+        div { class: "mb-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md text-gray-800 dark:text-gray-200",
             p {
                 span { class: "font-bold", "Title: " }
                 span { dangerous_inner_html: article.title.clone() }
@@ -196,7 +196,7 @@ fn SearchArticleView(slug: ReadSignal<String>) -> Element {
         match &*article_resource.read() {
             Some(Ok(article_detail)) => rsx! {
                 div { class: "bg-opacity-60 inset-0 flex items-center justify-center",
-                    div { class: "block w-4/5 rounded-lg bg-white p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]",
+                    div { class: "block w-4/5 rounded-lg bg-white dark:bg-gray-800 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]",
                         div { class: "mb-5 px-1 py-1",
                             div { class: "mb-5",
                                 ArticleMetaSearchView { article_detail: (*article_detail).clone() }
@@ -204,14 +204,14 @@ fn SearchArticleView(slug: ReadSignal<String>) -> Element {
                             div { class: "flex justify-between mb-5",
                                 div {
                                     div { class: "mb-2",
-                                        h1 { class: "text-xl leading-tight font-medium text-neutral-800",
+                                        h1 { class: "text-xl leading-tight font-medium text-neutral-800 dark:text-gray-200",
                                             {article_detail.article.title.clone()}
                                         }
                                     }
                                 }
                             }
                             div { class: "mb-5",
-                                p { {article_detail.article.body.clone()} }
+                                p { class: "text-gray-800 dark:text-gray-300", {article_detail.article.body.clone()} }
                             }
                         }
                         div { class: "mb-5 px-1 py-1",
@@ -237,7 +237,7 @@ fn SearchArticleView(slug: ReadSignal<String>) -> Element {
 fn ArticleMetaSearchView(article_detail: ReadSignal<super::ArticleDetailed>) -> Element {
     rsx! {
         div {
-            div { class: "flex items-center gap-4 text-gray-700",
+            div { class: "flex items-center gap-4 text-gray-700 dark:text-gray-300",
                 AuthorUserIcon { user: article_detail().article.author }
                 div { class: "flex items-center gap-1",
                     span {

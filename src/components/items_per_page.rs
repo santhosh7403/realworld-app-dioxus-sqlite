@@ -33,10 +33,10 @@ pub fn ItemsPerPage(route_path: ReadSignal<String>) -> Element {
     };
     rsx! {
         div {
-            label { class: "text-gray-700 px-1", r#for: "articlesPerPage", "Items Per Page" }
+            label { class: "text-gray-700 dark:text-gray-300 px-1", r#for: "articlesPerPage", "Items Per Page" }
             select {
                 id: "articlesPerPage",
-                class: "focus:shadow-outline rounded border px-1 py-1 leading-tight text-gray-700 shadow focus:outline-none",
+                class: "focus:shadow-outline rounded border dark:border-gray-600 px-1 py-1 leading-tight text-gray-700 dark:text-gray-200 dark:bg-gray-700 shadow focus:outline-none",
                 onchange: on_change,
                 option { id: "1", selected: page_amount().0 == 1, value: "1", "  1" }
                 option { id: "5", selected: page_amount().0 == 5, value: "5", "  5" }

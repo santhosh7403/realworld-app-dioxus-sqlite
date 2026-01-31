@@ -32,7 +32,7 @@ pub fn ArticlePreviewList(
 
     rsx! {
         for article in articles.iter() {
-            div { class: "mb-2 p-4 bg-white rounded-lg shadow-md",
+            div { class: "mb-2 p-4 bg-white dark:bg-gray-800 rounded-lg shadow-md",
                 div { class: "flex items-center gap-4 mb-4",
                     ArticleMeta {
                         article_detail: crate::views::ArticleDetailed {
@@ -44,14 +44,14 @@ pub fn ArticlePreviewList(
                 }
 
                 a { href: "/article/{article.slug.clone()}",
-                    h2 { class: "text-2xl font-bold mb-2 text-gray-800", {article.title.clone()} }
+                    h2 { class: "text-2xl font-bold mb-2 text-gray-800 dark:text-gray-200", {article.title.clone()} }
                 }
 
                 a { href: "/article/{article.slug.clone()}",
-                    p { class: "text-gray-700 mb-4", {article.description.clone()} }
+                    p { class: "text-gray-700 dark:text-gray-300 mb-4", {article.description.clone()} }
                 }
 
-                div { class: "flex justify-between items-end text-gray-600",
+                div { class: "flex justify-between items-end text-gray-600 dark:text-gray-400",
                     a { href: "/article/{article.slug.clone()}",
                         span { class: "hover:text-blue-600 hover:underline cursor-pointer",
                             "Read more..."
@@ -69,7 +69,7 @@ pub fn ArticlePreviewList(
                                         value: tag.clone(),
                                     }
                                     button {
-                                        span { class: "bg-gray-200 text-gray-700 px-2 py-1 rounded text-xs flex items-center gap-1 cursor-pointer",
+                                        span { class: "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded text-xs flex items-center gap-1 cursor-pointer",
                                             {tag.clone()}
                                         }
                                     }
@@ -114,7 +114,7 @@ pub fn ArticleMeta(
     };
 
     rsx! {
-        div { class: "flex items-center gap-4 text-gray-700",
+        div { class: "flex items-center gap-4 text-gray-700 dark:text-gray-300",
 
             if is_preview {
                 AuthorUserIcon { user: article_detail().article.author.clone() }

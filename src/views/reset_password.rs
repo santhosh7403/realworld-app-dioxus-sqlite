@@ -171,27 +171,27 @@ pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
             document::Title { "Reset Password" }
-            div { class: "block rounded-lg bg-white w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
-                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800",
+            div { class: "block rounded-lg bg-white dark:bg-gray-800 w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
+                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800 dark:text-gray-200",
                     "Reset Password."
                 }
 
                 if !token().is_empty() {
                     label {
-                        class: "block text-gray-700 text-sm font-bold mb-2",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2",
                         r#for: "password",
                         "Set a new password."
                     }
                     div { class: "mb-5 relative",
                         input {
                             name: "password",
-                            class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                             r#type: format!("{}", if passwd_visible() { "text" } else { "password" }),
                             placeholder: "New Password",
                             oninput: move |evt| passwd.set(evt.value()),
                         }
                         span {
-                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer  text-gray-500",
+                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500 dark:text-gray-400",
                             onclick: move |_| passwd_visible.toggle(),
                             i { class: format!("{}", if passwd_visible() { "far fa-eye" } else { "far fa-eye-slash" }) }
                         }
@@ -200,7 +200,7 @@ pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
                     div { class: "mb-5 relative",
                         input {
                             name: "confirm_password",
-                            class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                             r#type: format!("{}", if passwd_visible() { "text" } else { "password" }),
                             placeholder: "Confirm Password",
                             oninput: move |evt| confirm_passwd.set(evt.value()),
@@ -214,11 +214,11 @@ pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
                 } else {
                     div { class: "mb-5",
                         label {
-                            class: "block text-gray-700 text-sm font-bold mb-2",
+                            class: "block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2",
                             r#for: "email",
                             "Provide your linked email address with your user account."
                             input {
-                                class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                                class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 id: "email",
                                 name: "email",
                                 r#type: "text",

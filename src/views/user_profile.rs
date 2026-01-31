@@ -42,8 +42,8 @@ pub fn Profile(profile_user: ReadSignal<String>) -> Element {
     });
 
     rsx! {
-        div { class: "bg-gray-200",
-            div { class: "mx-auto sm:px-6 lg:px-8 bg-gray-200 px-2 py-2 sm:px-0 text-gray-800",
+        div { class: "bg-gray-200 dark:bg-gray-900",
+            div { class: "mx-auto sm:px-6 lg:px-8 bg-gray-200 dark:bg-gray-900 px-2 py-2 sm:px-0 text-gray-800 dark:text-gray-200",
                 ProfilePage {
                     profile_user: profile_user(),
                     route_path: format!("/profile/{}", profile_user()),
@@ -73,8 +73,8 @@ pub fn ProfilePage(profile_user: ReadSignal<String>, route_path: ReadSignal<Stri
             Some(Ok(articles)) => {
                 rsx! {
                     div { class: "mb-5",
-                        div { class: "flex justify-between px-2 bg-gray-200 py-2",
-                            div { class: "flex text-gray-800",
+                        div { class: "flex justify-between px-2 bg-gray-200 dark:bg-gray-900 py-2",
+                            div { class: "flex text-gray-800 dark:text-gray-200",
                                 UserArticlesTab { user: profile_user() }
                                 FavouritedArticlesTab { user: profile_user() }
                             }
@@ -93,10 +93,10 @@ pub fn ProfilePage(profile_user: ReadSignal<String>, route_path: ReadSignal<Stri
                 }
             }
             Some(Err(e)) => rsx! {
-                div { class: "text-gray-800", "Failed to load: {e}" }
+                div { class: "text-gray-800 dark:text-gray-200", "Failed to load: {e}" }
             },
             None => rsx! {
-                div { class: "text-gray-800", "Loading Articles..." }
+                div { class: "text-gray-800 dark:text-gray-200", "Loading Articles..." }
             },
         }
     }
@@ -235,7 +235,7 @@ fn UserInfo(user: ReadSignal<String>) -> Element {
                     },
                 );
                 rsx! {
-                    div { class: "bg-white text-gray-800 mb-2 p-4",
+                    div { class: "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200 mb-2 p-4",
                         div { class: "mb-5 px-5 flex justify-between",
                             h2 { class: "font-bold text-xl underline",
                                 "Profile data of User - "
@@ -263,10 +263,10 @@ fn UserInfo(user: ReadSignal<String>) -> Element {
                 }
             }
             Some(Err(e)) => rsx! {
-                div { class: "text-gray-800", "Failed to load: {e}" }
+                div { class: "text-gray-800 dark:text-gray-200", "Failed to load: {e}" }
             },
             None => rsx! {
-                div { class: "text-gray-800", "Loading Articles..." }
+                div { class: "text-gray-800 dark:text-gray-200", "Loading Articles..." }
             },
         }
     }

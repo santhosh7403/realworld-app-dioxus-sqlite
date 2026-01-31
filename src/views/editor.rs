@@ -227,14 +227,14 @@ pub fn Editor(slug: String) -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
             document::Title { "Create a new Article" }
-            div { class: "block rounded-lg bg-white w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
+            div { class: "block rounded-lg bg-white dark:bg-gray-800 w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
                 div { class: "col-md-10 offset-md-1 col-xs-12",
                     form { id: "editor", onsubmit: on_submit,
                         div { class: "mb-5",
                             input {
                                 name: "title",
                                 r#type: "text",
-                                class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                                class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "Article Title",
                                 minlength: TITLE_MIN_LENGTH,
                                 value: edit_article().article.title,
@@ -244,7 +244,7 @@ pub fn Editor(slug: String) -> Element {
                             input {
                                 name: "description",
                                 r#type: "text",
-                                class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                                class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "What's this article about?",
                                 minlength: DESCRIPTION_MIN_LENGTH,
                                 value: edit_article().article.description,
@@ -254,7 +254,7 @@ pub fn Editor(slug: String) -> Element {
                             textarea {
                                 name: "body",
                                 rows: 8,
-                                class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                                class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "Write your article (in markdown)",
                                 minlength: BODY_MIN_LENGTH,
                                 value: edit_article().article.body,
@@ -262,7 +262,7 @@ pub fn Editor(slug: String) -> Element {
                         }
                         div { class: "mb-5",
                             input {
-                                class: "shadow appearance-none rounded w-full py-2 px-3 text-gray-700 leading-tight focus:ring",
+                                class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 name: "tag_list",
                                 placeholder: "Enter tags(space separated)",
                                 r#type: "text",
@@ -276,7 +276,7 @@ pub fn Editor(slug: String) -> Element {
                                 "Publish Article"
                             }
                             button {
-                                class: "bg-gray-300 hover:bg-gray-400 px-5 py-3 text-white rounded-lg",
+                                class: "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 px-5 py-3 text-white rounded-lg",
                                 r#type: "button",
                                 onclick: move |_| {
                                     if nav.can_go_back() {

@@ -187,8 +187,8 @@ pub fn Settings() -> Element {
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
             document::Title { "Settings" }
-            div { class: "block rounded-lg bg-white w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
-                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800",
+            div { class: "block rounded-lg bg-white dark:bg-gray-800 w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
+                h5 { class: "mb-5 text-xl font-medium leading-tight text-neutral-800 dark:text-gray-200",
                     "Update Your Settings."
                 }
                 form {
@@ -252,7 +252,7 @@ pub fn Settings() -> Element {
                             },
                         }
                         span {
-                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer  text-gray-500",
+                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500 dark:text-gray-400",
                             onclick: move |_| passwd_visible.toggle(),
                             i { class: format!("{}", if passwd_visible() { "far fa-eye" } else { "far fa-eye-slash" }) }
                         }
@@ -337,7 +337,7 @@ pub fn Settings() -> Element {
                                 if update_status().starts_with("Successful.") {
                                     "btn-primary"
                                 } else {
-                                    "bg-gray-300 hover:bg-gray-400 px-5 py-3 text-white rounded-lg"
+                                    "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 px-5 py-3 text-white rounded-lg"
                                 },
                             ),
                             onclick: on_cancel,
