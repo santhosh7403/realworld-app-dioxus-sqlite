@@ -111,6 +111,9 @@ struct SearchString(String);
 #[derive(Clone, Default)]
 struct PageAmount(i64);
 
+#[derive(Clone, Default)]
+struct ThemeMode(String);
+
 #[component]
 fn App() -> Element {
     // Build cool things ✌️
@@ -125,6 +128,7 @@ fn App() -> Element {
     use_context_provider(|| Signal::new(SearchWindow(false)));
     use_context_provider(|| Signal::new(SearchString(String::new())));
     use_context_provider(|| Signal::new(PageAmount(10)));
+    use_context_provider(|| Signal::new(ThemeMode(String::from("dark"))));
 
     use_effect(move || {
         let mut search_meta = use_context::<Signal<SearchMeta>>();
@@ -142,8 +146,28 @@ fn App() -> Element {
         if let Some(user) = logged_user().0 {
             page_amount.set(crate::PageAmount(user.per_page_amount()));
         }
-    });
+        #[cfg(feature = "web")]
+        {
+            if let Some(window) = web_sys::window() {
+                if let Ok(Some(storage)) = window.local_storage() {
+                    if let Ok(Some(saved_theme)) = storage.get_item("theme") {
+                        let mut theme = use_context::<Signal<ThemeMode>>();
+                        theme.set(ThemeMode(saved_theme.clone()));
 
+                        if let Some(document) = window.document() {
+                            if let Some(html) = document.document_element() {
+                                if saved_theme == "dark" {
+                                    let _ = html.class_list().add_1("dark");
+                                } else {
+                                    let _ = html.class_list().remove_1("dark");
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    });
     rsx! {
         // Global app resources
         document::Link { rel: "icon", href: FAVICON }
@@ -164,9 +188,9 @@ fn App() -> Element {
 #[component]
 fn Footer() -> Element {
     rsx! {
-        div { class: "bg-gray-200 text-gray-600 text-center text-xs sticky bottom-0",
+        div { class: "bg-gray-200 text-gray-600 dark:bg-gray-900 dark:text-gray-400 text-center text-xs sticky bottom-0",
             a { href: "/", "MyApp" }
-            div { class: "text-gray-600", "© 2025 My-Website" }
+            div { class: "text-gray-600 dark:text-gray-400", "© 2026 My-Website" }
         }
     }
 }
@@ -280,6 +304,66 @@ fn NavBar() -> Element {
                                 i { class: "fa-solid fa-right-to-bracket  navitem-icon" }
                                 span { class: "text-xs md:text-base mt-1 font-semibold",
                                     "Login"
+                                }
+                            }
+                        }
+                    }
+
+                    // Theme Toggle
+                    button {
+                        onclick: move |_| {
+                            let mut theme = use_context::<Signal<ThemeMode>>();
+                            let new_theme = if theme().0 == "dark" { "light" } else { "dark" };
+                            theme.set(ThemeMode(new_theme.to_string()));
+
+                            #[cfg(feature = "web")]
+                            {
+                                if let Some(window) = web_sys::window() {
+                                    if let Ok(Some(storage)) = window.local_storage() {
+                                        let _ = storage.set_item("theme", new_theme);
+                                    }
+                                    if let Some(document) = window.document() {
+                                        if let Some(html) = document.document_element() {
+                                            if new_theme == "dark" {
+                                                let _ = html.class_list().add_1("dark");
+                                            } else {
+                                                let _ = html.class_list().remove_1("dark");
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        r#type: "button",
+                        class: "border-l border-gray-600 pl-3 ml-2",
+                        div { class: "group navitem",
+                            if use_context::<Signal<ThemeMode>>().read().0 == "dark" {
+                                // Sun icon for dark mode
+                                svg {
+                                    class: "w-6 h-6 md:w-7 md:h-7 text-yellow-400 transition-transform group-hover:scale-110",
+                                    fill: "none",
+                                    view_box: "0 0 24 24",
+                                    stroke_width: "1.5",
+                                    stroke: "currentColor",
+                                    path {
+                                        stroke_linecap: "round",
+                                        stroke_linejoin: "round",
+                                        d: "M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                                    }
+                                }
+                            } else {
+                                // Moon icon for light mode
+                                svg {
+                                    class: "w-6 h-6 md:w-7 md:h-7 text-gray-400 transition-transform group-hover:scale-110",
+                                    fill: "none",
+                                    view_box: "0 0 24 24",
+                                    stroke_width: "1.5",
+                                    stroke: "currentColor",
+                                    path {
+                                        stroke_linecap: "round",
+                                        stroke_linejoin: "round",
+                                        d: "M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                                    }
                                 }
                             }
                         }

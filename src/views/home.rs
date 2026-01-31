@@ -25,7 +25,7 @@ pub fn Home() -> Element {
     });
 
     rsx! {
-        div { class: "bg-gray-200",
+        div { class: "bg-gray-200 dark:bg-gray-900 min-h-screen",
             document::Title { "Home Page" }
             HomePage { logged_user: logged_user().0, route_path: "".to_string() }
         }
@@ -53,10 +53,10 @@ pub fn HomePage(logged_user: Option<User>, route_path: ReadSignal<String>) -> El
 
         match &*articles_resource.read() {
             Some(Ok(articles)) => rsx! {
-                div { class: "mx-auto sm:px-6 lg:px-8 bg-gray-200 px-2 py-2 sm:px-0 text-gray-800",
+                div { class: "mx-auto sm:px-6 lg:px-8 bg-gray-200 dark:bg-gray-900 px-2 py-2 sm:px-0 text-gray-800 dark:text-gray-200",
                     // div { class: "mx-auto max-w-7xl sm:px-6 lg:px-8 bg-gray-200 px-2 py-2 sm:px-0 text-gray-800",
                     div {
-                        div { class: "flex justify-between text-gray-800",
+                        div { class: "flex justify-between text-gray-800 dark:text-gray-200",
                             div {
                                 YourFeedTab { logged_user: logged_user.clone() }
                                 GlobalFeedTab {}
@@ -70,8 +70,8 @@ pub fn HomePage(logged_user: Option<User>, route_path: ReadSignal<String>) -> El
                             SearchResults { search_string_input, hide_all }
                         } else {
                             if !pagination().get_my_feed() {
-                                div { class: "flex gap-1 rounded bg-white mb-2",
-                                    span { class: "font-bold m-1 text-gray-800", "Popular Tags:" }
+                                div { class: "flex gap-1 rounded bg-white dark:bg-gray-800 mb-2 p-1",
+                                    span { class: "font-bold m-1 text-gray-800 dark:text-gray-200", "Popular Tags:" }
                                     TagList {}
                                 }
                             }
@@ -102,7 +102,7 @@ pub fn HomePage(logged_user: Option<User>, route_path: ReadSignal<String>) -> El
                 div { class: "text-gray-800", "Failed to load: {e}" }
             },
             None => rsx! {
-                div { class: "text-gray-800", "Loading Articles..." }
+                div { class: "text-gray-800 dark:text-gray-200", "Loading Articles..." }
             },
         }
     }
@@ -127,7 +127,7 @@ fn SearchArticle(search_string_input: Signal<String>, hide_all: Signal<bool>) ->
             div { class: "flex justify-end",
                 div { class: "flex justify-end",
                     input {
-                        class: "shadow appearance-none bg-white border rounded w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                        class: "shadow appearance-none bg-white dark:bg-gray-700 dark:text-white border dark:border-gray-600 rounded w-full py-1 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                         r#type: "text",
                         name: "search",
                         minlength: 2,
@@ -200,11 +200,11 @@ fn YourFeedTab(logged_user: Option<User>) -> Element {
             class: format!(
                 "px-1 m-1 font-bold disabled:cursor-not-allowed {}",
                 if logged_user.is_none() {
-                    "cursor-not-allowed bg-gray-200"
+                    "cursor-not-allowed bg-gray-200 dark:bg-gray-700 dark:text-gray-400"
                 } else if pagination().get_my_feed() {
-                    "border-b-8 bg-gray-200"
+                    "border-b-8 bg-gray-200 dark:bg-gray-700 dark:text-white border-blue-500"
                 } else {
-                    "bg-gray-200 cursor-pointer"
+                    "bg-gray-200 dark:bg-gray-800 dark:text-gray-300 cursor-pointer hover:dark:bg-gray-700"
                 },
             ),
             "Your Feed"
@@ -244,9 +244,9 @@ fn GlobalFeedTab() -> Element {
             class: format!(
                 "px-1 m-1 font-bold disabled:cursor-not-allowed {}",
                 if !pagination().get_my_feed() {
-                    "border-b-8 bg-gray-200"
+                    "border-b-8 bg-gray-200 dark:bg-gray-700 dark:text-white border-blue-500"
                 } else {
-                    "bg-gray-200 cursor-pointer"
+                    "bg-gray-200 dark:bg-gray-800 dark:text-gray-300 cursor-pointer hover:dark:bg-gray-700"
                 },
             ),
             "Global Feed"
@@ -361,8 +361,8 @@ fn TagList() -> Element {
                                 }
                                 button {
                                     class: format!(
-                                        "rounded px-1 py-0.5 hover:bg-green-300 text-gray-800 cursor-pointer {}",
-                                        if tag == &tag_elected { "bg-green-200" } else { "bg-gray-200" },
+                                        "rounded px-1 py-0.5 hover:bg-green-300 dark:hover:bg-green-700 text-gray-800 dark:text-gray-200 cursor-pointer {}",
+                                        if tag == &tag_elected { "bg-green-200 dark:bg-green-800" } else { "bg-gray-200 dark:bg-gray-700" },
                                     ),
                                     {tag.clone()}
                                 }

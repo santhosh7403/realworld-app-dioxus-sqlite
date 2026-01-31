@@ -46,22 +46,22 @@ pub fn Login() -> Element {
 
     rsx! {
         div { class: "fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-60",
-            div { class: "block rounded-lg bg-white w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
-                h5 { class: "mb-5 text-xl font-medium leading-tight text-gray-800",
+            div { class: "block rounded-lg bg-white dark:bg-gray-800 w-2/5 p-4 shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)] z-70",
+                h5 { class: "mb-5 text-xl font-medium leading-tight text-gray-800 dark:text-gray-200",
                     " Please login with your credentials."
                 }
                 document::Title { "Login to MyApp" }
                 form { class: "mb-10", id: "login", onsubmit: on_submit,
 
                     label {
-                        class: "block text-gray-700 text-sm font-bold",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold",
                         r#for: "username",
                         "User Name"
                     }
 
                     div { class: "mb-5",
                         input {
-                            class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                             id: "username",
                             name: "username",
                             r#type: "text",
@@ -70,21 +70,21 @@ pub fn Login() -> Element {
                     }
 
                     label {
-                        class: "block text-gray-700 text-sm font-bold",
+                        class: "block text-gray-700 dark:text-gray-300 text-sm font-bold",
                         r#for: "password",
                         "Password"
                     }
 
                     div { class: "mb-5 relative",
                         input {
-                            class: "shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline",
+                            class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline",
                             id: "password",
                             name: "password",
                             r#type: format!("{}", if passwd_visible() { "text" } else { "password" }),
                             placeholder: "password",
                         }
                         span {
-                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500",
+                            class: "absolute inset-y-0 right-0 flex items-center pr-3 cursor-pointer text-gray-500 dark:text-gray-400",
                             onclick: move |_| passwd_visible.toggle(),
                             i { class: format!("{}", if passwd_visible() { "far fa-eye" } else { "far fa-eye-slash" }) }
                         }
@@ -96,7 +96,7 @@ pub fn Login() -> Element {
                             "Signin"
                         }
                         button {
-                            class: "bg-gray-300 hover:bg-gray-400 px-5 py-2 text-white rounded-lg",
+                            class: "bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 px-5 py-2 text-white rounded-lg",
                             r#type: "button",
                             onclick: move |_| {
                                 if nav.can_go_back() {
@@ -108,7 +108,7 @@ pub fn Login() -> Element {
                             "Cancel"
                         }
                         a {
-                            class: "p-2 text-gray-700 hover:text-blue-500 hover:underline",
+                            class: "p-2 text-gray-700 dark:text-gray-300 hover:text-blue-500 hover:underline",
                             href: "/reset_password",
                             "Forgot password?"
                         }
