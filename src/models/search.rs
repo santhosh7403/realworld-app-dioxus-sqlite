@@ -22,9 +22,9 @@ impl MatchedArticles {
             r#"
 SELECT distinct
 a.slug as slug,
-snippet(articles_fts,1, '<span class="bg-yellow-300">','</span>','<span class="bg-yellow-300">  ...  </span>',10) as "title: String",
-snippet(articles_fts,2, '<span class="bg-yellow-300">','</span>','<span class="bg-yellow-300">  ...  </span>',20) as "description: String",
-snippet(articles_fts,3, '<span class="bg-yellow-300">','</span>','<span class="bg-yellow-300">  ...  </span>',20) as "body: String"
+snippet(articles_fts,1, '<span class="bg-yellow-300 text-gray-700">','</span>','<span class="bg-yellow-300 text-gray-700">  ...  </span>',10) as "title: String",
+snippet(articles_fts,2, '<span class="bg-yellow-300 text-gray-700">','</span>','<span class="bg-yellow-300 text-gray-700">  ...  </span>',20) as "description: String",
+snippet(articles_fts,3, '<span class="bg-yellow-300 text-gray-700">','</span>','<span class="bg-yellow-300 text-gray-700">  ...  </span>',20) as "body: String"
 FROM Articles_fts AS AFTS
 JOIN  Articles AS A  ON A.oid = AFTS.rowid
 WHERE Articles_fts MATCH $3
