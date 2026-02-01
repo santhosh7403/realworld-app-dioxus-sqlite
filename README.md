@@ -10,13 +10,16 @@
 
 # Background
 
+A fullstack application built with [Dioxus](https://dioxuslabs.com/) and SQLite, implementing a RealWorld blog platform.
+
+
 Some time back I published [ Leptos ](https://leptos.dev/) Rust framework based full stack demo web application as part of my Rust learning exercises. In continuation to  that, I saw an opportunity to port the same application to the [ Dioxus ](https://dioxuslabs.com/), another Rust framework, that is also one of the leading one in the Rust front-end framework [list](https://github.com/flosse/rust-web-framework-comparison?tab=readme-ov-file#frontend-frameworks-wasm). 
 
 In case anyone is interested in the above-mentioned Leptos demo app, it is available here:
 1. [ realworld-app-leptos-axum sqlite ](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) 
 2. [ realworld-app-leptos-axum postgres ](https://github.com/santhosh7403/realworld-app-leptos-axum)
 
-AAs before, I hope this project will serve as a valuable, hands-on example for anyone considering the Dioxus framework for their own project or wanting a peek into a more real-world working example.
+As before, I hope this project will serve as a valuable, hands-on example for anyone considering the Dioxus framework for their own project or wanting a peek into a more real-world working example.
 
 
 To ensure it runs in a few simple steps, backend DB is in SQLite ([a practical choice for many apps that don't require heavy write operations](https://dev.to/shayy/everyone-is-wrong-about-sqlite-4gjf) ). Interested to see it? just clone the repo and follow the instructions below.
@@ -175,4 +178,4 @@ This step is only required if you are making any changes to CSS classes or addin
 
 The base of this app is from [ here ](https://github.com/Bechma/realworld-leptos), though there may be other original versions elsewhere; I am not certain.
 
-I initially started this as leptos06 to 08 upgrade of this app, as my learning progressed and want to try out more experiments. The overall user interface changed, incorporating modal windows, Tailwind CSS and FontAwesome icons, re-wired pages, some functionality changes etc. I currently added sqlite supported FTS5 (Full-Text Search) feature to enable a wide search (see the screenshot above). Search results pagination changed to a new way to avoid results page reload and the application is now being ported to Dioxus as the framework.
+I initially started this as leptos06 to 08 upgrade of this app, as my learning progressed and want to try out more experiments. The overall user interface changed, incorporating modal windows, Tailwind CSS and FontAwesome icons, re-wired pages, some functionality changes etc. I currently added sqlite supported FTS5 (Full-Text Search) feature to enable a wide search (see the screenshot above). Search results pagination changed to a new way to avoid results page reload and the application is now being ported to Dioxus as the framework.Dark mode toggle with persistent user preferences (theme and items-per-page count stored in database for logged-in users, localStorage for guests)
