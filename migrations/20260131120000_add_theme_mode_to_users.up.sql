@@ -1,0 +1,1 @@
+ALTER TABLE Users ADD COLUMN theme_mode TEXT NOT NULL DEFAULT 'dark';
