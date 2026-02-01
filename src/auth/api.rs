@@ -74,6 +74,28 @@ pub async fn update_per_page_amount(amount: u32) -> Result<(), ServerFnError> {
     Ok(())
 }
 
+#[post("/api/update_theme_mode", header: TypedHeader<Cookie>)]
+pub async fn update_theme_mode(theme: String) -> Result<(), ServerFnError> {
+    let Some(username) = super::get_username_from_cookie(header) else {
+        return Err(ServerFnError::new("not logged in"));
+    };
+
+    let user = crate::models::User::get(username).await.map_err(|e| {
+        tracing::error!("Failed to get user: {}", e);
+        ServerFnError::new("failed to get user")
+    })?;
+
+    user.set_theme_mode(theme)
+        .update_theme_mode()
+        .await
+        .map_err(|e| {
+            tracing::error!("Failed to update theme preference: {}", e);
+            ServerFnError::new("failed to update theme preference")
+        })?;
+
+    Ok(())
+}
+
 #[post("/api/logout", _header: TypedHeader<Cookie>)]
 pub async fn logout() -> Result<SetHeader<SetCookie>> {
     Ok(SetHeader::new(format!(

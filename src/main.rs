@@ -143,23 +143,50 @@ fn App() -> Element {
     use_effect(move || {
         let logged_user = use_context::<Signal<LoggedInUser>>();
         let mut page_amount = use_context::<Signal<crate::PageAmount>>();
-        if let Some(user) = logged_user().0 {
-            page_amount.set(crate::PageAmount(user.per_page_amount()));
-        }
-        #[cfg(feature = "web")]
-        {
-            if let Some(window) = web_sys::window() {
-                if let Ok(Some(storage)) = window.local_storage() {
-                    if let Ok(Some(saved_theme)) = storage.get_item("theme") {
-                        let mut theme = use_context::<Signal<ThemeMode>>();
-                        theme.set(ThemeMode(saved_theme.clone()));
+        let mut theme = use_context::<Signal<ThemeMode>>();
 
-                        if let Some(document) = window.document() {
-                            if let Some(html) = document.document_element() {
-                                if saved_theme == "dark" {
-                                    let _ = html.class_list().add_1("dark");
-                                } else {
-                                    let _ = html.class_list().remove_1("dark");
+        if let Some(user) = logged_user().0 {
+            // User is logged in - load preferences from database
+            page_amount.set(crate::PageAmount(user.per_page_amount()));
+            let user_theme = user.theme_mode();
+            theme.set(ThemeMode(user_theme.clone()));
+
+            #[cfg(feature = "web")]
+            {
+                if let Some(window) = web_sys::window() {
+                    // Update localStorage to match DB
+                    if let Ok(Some(storage)) = window.local_storage() {
+                        let _ = storage.set_item("theme", &user_theme);
+                    }
+
+                    // Apply theme to HTML element
+                    if let Some(document) = window.document() {
+                        if let Some(html) = document.document_element() {
+                            if user_theme == "dark" {
+                                let _ = html.class_list().add_1("dark");
+                            } else {
+                                let _ = html.class_list().remove_1("dark");
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            // User not logged in - load from localStorage only
+            #[cfg(feature = "web")]
+            {
+                if let Some(window) = web_sys::window() {
+                    if let Ok(Some(storage)) = window.local_storage() {
+                        if let Ok(Some(saved_theme)) = storage.get_item("theme") {
+                            theme.set(ThemeMode(saved_theme.clone()));
+
+                            if let Some(document) = window.document() {
+                                if let Some(html) = document.document_element() {
+                                    if saved_theme == "dark" {
+                                        let _ = html.class_list().add_1("dark");
+                                    } else {
+                                        let _ = html.class_list().remove_1("dark");
+                                    }
                                 }
                             }
                         }
@@ -313,15 +340,18 @@ fn NavBar() -> Element {
                     button {
                         onclick: move |_| {
                             let mut theme = use_context::<Signal<ThemeMode>>();
+                            let logged_user = use_context::<Signal<LoggedInUser>>();
                             let new_theme = if theme().0 == "dark" { "light" } else { "dark" };
                             theme.set(ThemeMode(new_theme.to_string()));
 
                             #[cfg(feature = "web")]
                             {
                                 if let Some(window) = web_sys::window() {
+                                    // Always update localStorage
                                     if let Ok(Some(storage)) = window.local_storage() {
                                         let _ = storage.set_item("theme", new_theme);
                                     }
+                                    // Apply theme to HTML
                                     if let Some(document) = window.document() {
                                         if let Some(html) = document.document_element() {
                                             if new_theme == "dark" {
@@ -332,6 +362,13 @@ fn NavBar() -> Element {
                                         }
                                     }
                                 }
+                            }
+
+                            // If user is logged in, persist to database
+                            if logged_user().0.is_some() {
+                                spawn(async move {
+                                    let _ = crate::auth::update_theme_mode(new_theme.to_string()).await;
+                                });
                             }
                         },
                         r#type: "button",
