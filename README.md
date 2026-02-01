@@ -144,9 +144,9 @@ Once application has started, access application from your web browser [ localho
 
 The application screen looks like this
 
-<img width="1881" height="1029" alt="image" src="https://github.com/user-attachments/assets/654ac8c9-4c7b-4717-ab72-f2d834f31153" />
+<img width="1861" height="904" alt="image" src="https://github.com/user-attachments/assets/31c135f8-f451-40b9-810c-a0bd5c38a716" />
 
-<img width="1881" height="1029" alt="image" src="https://github.com/user-attachments/assets/c1675b96-61ef-4f71-91cf-9bcaf041cfde" />
+<img width="1861" height="904" alt="image" src="https://github.com/user-attachments/assets/4a6bd5ff-ff90-4746-afe6-862cdf4a3574" />
 
 
 More screenshots are [ available here ](https://github.com/santhosh7403/realworld-app-dioxus-sqlite/blob/main/App_Screenshots.md)
