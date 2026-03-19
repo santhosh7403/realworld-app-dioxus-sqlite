@@ -152,26 +152,49 @@ pub async fn editor_action(
 
 #[component]
 pub fn Editor(slug: String) -> Element {
-    let nav = navigator();
-    let mut editor_status = use_signal(|| "".to_string());
-    let mut edit_article = use_signal(|| super::article::ArticleDetailed::default());
+    let mut article = use_signal(|| super::article::ArticleDetailed::default());
 
-    if !slug.is_empty() {
-        let _ = use_resource(move || {
-            let value = slug.clone();
-            async move {
-                match super::article::get_article(value).await {
-                    Ok(res) => {
-                        edit_article.set(res);
-                    }
-
-                    Err(err) => {
-                        tracing::error!("Error returned while get_article : {}", err.to_string());
-                    }
+    let _ = use_resource(move || {
+        let value = slug.clone();
+        async move {
+            match super::article::get_article(value).await {
+                Ok(res) => {
+                    article.set(res);
+                }
+                Err(err) => {
+                    tracing::error!("Error returned while get_article : {}", err.to_string());
                 }
             }
-        });
+        }
+    });
+
+    rsx! {
+        ArticleEditor { article }
     }
+}
+
+#[component]
+pub fn ArticleEditor(article: Signal<super::article::ArticleDetailed>) -> Element {
+    let nav = navigator();
+    let mut editor_status = use_signal(|| "".to_string());
+    // let mut edit_article = use_signal(|| super::article::ArticleDetailed::default());
+
+    // if !slug.is_empty() {
+    //     let _ = use_resource(move || {
+    //         let value = slug.clone();
+    //         async move {
+    //             match super::article::get_article(value).await {
+    //                 Ok(res) => {
+    //                     edit_article.set(res);
+    //                 }
+
+    //                 Err(err) => {
+    //                     tracing::error!("Error returned while get_article : {}", err.to_string());
+    //                 }
+    //             }
+    //         }
+    //     });
+    // }
 
     let on_submit = move |evt: FormEvent| async move {
         evt.prevent_default();
@@ -205,7 +228,7 @@ pub fn Editor(slug: String) -> Element {
             _ => String::new(),
         };
 
-        let res = editor_action(title, description, body, tags, edit_article().article.slug).await;
+        let res = editor_action(title, description, body, tags, article().article.slug).await;
 
         match res {
             Ok(EditorResponse::Successful(_)) => {
@@ -237,7 +260,7 @@ pub fn Editor(slug: String) -> Element {
                                 class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "Article Title",
                                 minlength: TITLE_MIN_LENGTH,
-                                value: edit_article().article.title,
+                                value: article().article.title,
                             }
                         }
                         div { class: "mb-5",
@@ -247,7 +270,7 @@ pub fn Editor(slug: String) -> Element {
                                 class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "What's this article about?",
                                 minlength: DESCRIPTION_MIN_LENGTH,
-                                value: edit_article().article.description,
+                                value: article().article.description,
                             }
                         }
                         div { class: "mb-5",
@@ -257,7 +280,7 @@ pub fn Editor(slug: String) -> Element {
                                 class: "shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:ring",
                                 placeholder: "Write your article (in markdown)",
                                 minlength: BODY_MIN_LENGTH,
-                                value: edit_article().article.body,
+                                value: article().article.body,
                             }
                         }
                         div { class: "mb-5",
@@ -266,7 +289,7 @@ pub fn Editor(slug: String) -> Element {
                                 name: "tag_list",
                                 placeholder: "Enter tags(space separated)",
                                 r#type: "text",
-                                value: edit_article().article.tag_list.join(" "),
+                                value: article().article.tag_list.join(" "),
                             }
                         }
 

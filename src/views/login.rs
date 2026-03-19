@@ -1,9 +1,12 @@
 use crate::auth;
+use crate::models::Pagination;
 use dioxus::prelude::*;
 
 #[component]
 pub fn Login() -> Element {
     let nav = navigator();
+    let mut pagination = use_context::<Signal<Pagination>>();
+
     let mut passwd_visible = use_signal(|| false);
     let mut login_status = use_signal(|| String::new());
 
@@ -33,6 +36,7 @@ pub fn Login() -> Element {
         match login_result {
             Ok(_) => match auth::current_user().await {
                 Ok(Some(user)) if user.username() == username => {
+                    pagination.set(Pagination::default().set_amount(user.per_page_amount()));
                     nav.replace(crate::Route::Home {});
                 }
                 _ => login_status.set("Login failed! : username or password incorrect".to_string()),

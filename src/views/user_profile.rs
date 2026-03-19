@@ -104,10 +104,11 @@ pub fn ProfilePage(profile_user: ReadSignal<String>, route_path: ReadSignal<Stri
 
 #[component]
 fn BackToHome() -> Element {
+    let mut pagination = use_context::<Signal<Pagination>>();
+    let page_amount = use_context::<Signal<crate::PageAmount>>();
+
     let on_click = move |_| {
         let nav = navigator();
-        let mut pagination = use_context::<Signal<Pagination>>();
-        let page_amount = use_context::<Signal<crate::PageAmount>>();
         let pagination_string = pagination()
             .set_amount(page_amount().0)
             .set_my_feed(false)

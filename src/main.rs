@@ -129,27 +129,28 @@ fn App() -> Element {
     use_context_provider(|| Signal::new(SearchString(String::new())));
     use_context_provider(|| Signal::new(PageAmount(10)));
     use_context_provider(|| Signal::new(ThemeMode(String::from("dark"))));
+    let mut search_meta = use_context::<Signal<SearchMeta>>();
+    let page_amount = use_context::<Signal<PageAmount>>();
 
     use_effect(move || {
-        let mut search_meta = use_context::<Signal<SearchMeta>>();
-        let page_amount = use_context::<Signal<PageAmount>>();
-
         search_meta.set(SearchMeta {
             page: 0,
             amount: page_amount().0,
         });
     });
 
-    use_effect(move || {
-        let logged_user = use_context::<Signal<LoggedInUser>>();
-        let mut page_amount = use_context::<Signal<crate::PageAmount>>();
-        let mut theme = use_context::<Signal<ThemeMode>>();
+    let logged_user = use_context::<Signal<LoggedInUser>>();
+    let mut page_amount = use_context::<Signal<crate::PageAmount>>();
+    let mut theme = use_context::<Signal<ThemeMode>>();
+    let mut pagination = use_context::<Signal<Pagination>>();
 
+    use_effect(move || {
         if let Some(user) = logged_user().0 {
             // User is logged in - load preferences from database
             page_amount.set(crate::PageAmount(user.per_page_amount()));
             let user_theme = user.theme_mode();
             theme.set(ThemeMode(user_theme.clone()));
+            pagination.set(Pagination::default().set_amount(user.per_page_amount()));
 
             #[cfg(feature = "web")]
             {
@@ -238,10 +239,11 @@ fn NavBar() -> Element {
         }
     };
 
+    let mut pagination = use_context::<Signal<Pagination>>();
+    let mut search_window = use_context::<Signal<SearchWindow>>();
+    let page_amount = use_context::<Signal<crate::PageAmount>>();
+
     let on_click_home = move |_| {
-        let mut pagination = use_context::<Signal<Pagination>>();
-        let page_amount = use_context::<Signal<crate::PageAmount>>();
-        let mut search_window = use_context::<Signal<SearchWindow>>();
         let pagination_string = pagination()
             .set_amount(page_amount().0)
             .set_my_feed(false)
@@ -274,7 +276,6 @@ fn NavBar() -> Element {
                         }
                     }
 
-
                     if logged_user().0.is_some() {
                         Link { to: Route::NewArticle {},
                             div { class: "group navitem",
@@ -298,7 +299,8 @@ fn NavBar() -> Element {
                             },
                             div { class: "group navitem",
                                 i { class: "fa-regular fa-circle-user navitem-icon" }
-                                span { class: "text-xs md:text-base mt-1 font-semibold",
+                                span {
+                                    class: "text-xs md:text-base mt-1 font-semibold",
                                     // "user1"
                                     {logged_user().0.unwrap().username}
                                                                 // {current_user().0}
@@ -324,7 +326,6 @@ fn NavBar() -> Element {
                                 }
                             }
                         }
-
 
                         Link { to: Route::Login {},
                             div { class: "group navitem",
@@ -385,7 +386,7 @@ fn NavBar() -> Element {
                                     path {
                                         stroke_linecap: "round",
                                         stroke_linejoin: "round",
-                                        d: "M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z"
+                                        d: "M12 3v2.25m6.364.386l-1.591 1.591M21 12h-2.25m-.386 6.364l-1.591-1.591M12 18.75V21m-4.773-4.227l-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0z",
                                     }
                                 }
                             } else {
@@ -399,7 +400,7 @@ fn NavBar() -> Element {
                                     path {
                                         stroke_linecap: "round",
                                         stroke_linejoin: "round",
-                                        d: "M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z"
+                                        d: "M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z",
                                     }
                                 }
                             }

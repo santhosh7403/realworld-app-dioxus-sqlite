@@ -101,6 +101,7 @@ pub fn Settings() -> Element {
     let mut passwd = use_signal(|| String::new());
     let mut confirm_passwd = use_signal(|| String::new());
     let mut is_passwd_change = use_signal(|| false);
+    let mut logged_user = use_context::<Signal<LoggedInUser>>();
 
     let mut settings_fut = use_resource(move || async move {
         match settings_get().await {
@@ -148,7 +149,7 @@ pub fn Settings() -> Element {
             Ok(SettingsUpdateError::Successful) => {
                 update_status.set("Successful.".to_string());
                 if is_passwd_change() {
-                    let mut logged_user = use_context::<Signal<LoggedInUser>>();
+                    // let mut logged_user = use_context::<Signal<LoggedInUser>>();
                     logged_user.set(LoggedInUser(None));
                     let _ = logout().await;
                     let nav = navigator();

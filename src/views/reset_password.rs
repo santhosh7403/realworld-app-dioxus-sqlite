@@ -122,6 +122,7 @@ pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
     let mut email = use_signal(|| String::new());
     let mut passwd = use_signal(|| String::new());
     let mut confirm_passwd = use_signal(|| String::new());
+    let mut logged_user = use_context::<Signal<LoggedInUser>>();
 
     let on_click = move |_| async move {
         if token().is_empty() {
@@ -136,7 +137,6 @@ pub fn ResetPasswd(token: ReadSignal<String>) -> Element {
                 Ok(msg) => {
                     let _ = logout().await;
                     reset_status.set(msg);
-                    let mut logged_user = use_context::<Signal<LoggedInUser>>();
                     logged_user.set(LoggedInUser(None));
                     let nav = navigator();
                     nav.replace(crate::Route::Login {});
