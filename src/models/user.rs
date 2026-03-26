@@ -177,14 +177,16 @@ impl User {
                     return Err(sqlx::Error::InvalidArgument(e.to_string()));
                 }
             };
+        let per_page_amount = default_per_page();
+        let theme_mode = default_theme();
 
         sqlx::query!(
             "INSERT INTO Users(username, email, password, per_page_amount, theme_mode) VALUES ($1, $2, $3, $4, $5)",
             self.username,
             self.email,
             hashed_password,
-            self.per_page_amount,
-            self.theme_mode
+            per_page_amount,
+            theme_mode
         )
         .execute(crate::database::server::get_db())
         .await

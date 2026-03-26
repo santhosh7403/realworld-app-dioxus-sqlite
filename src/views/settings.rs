@@ -7,7 +7,7 @@ use crate::{auth::logout, LoggedInUser};
 use serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize, Clone, Debug)]
-pub enum SettingsUpdateError {
+pub enum SettingsUpdateResult {
     PasswordsNotMatch,
     Successful,
     ValidationError(String),
@@ -21,7 +21,7 @@ pub async fn settings_update(
     email: String,
     password: String,
     confirm_password: String,
-) -> Result<SettingsUpdateError, ServerFnError> {
+) -> Result<SettingsUpdateResult, ServerFnError> {
     let user = get_user(header).await?;
     let username = user.username();
     let user = match update_user_validation(user, image, bio, email, password, &confirm_password) {
@@ -30,7 +30,7 @@ pub async fn settings_update(
     };
     user.update()
         .await
-        .map(|_| SettingsUpdateError::Successful)
+        .map(|_| SettingsUpdateResult::Successful)
         .map_err(move |x| {
             tracing::error!(
                 "Problem while updating user: {} with error {}",
@@ -49,22 +49,22 @@ fn update_user_validation(
     email: String,
     password: String,
     confirm_password: &str,
-) -> Result<crate::models::User, SettingsUpdateError> {
+) -> Result<crate::models::User, SettingsUpdateResult> {
     if !password.is_empty() {
         if password != confirm_password {
-            return Err(SettingsUpdateError::PasswordsNotMatch);
+            return Err(SettingsUpdateResult::PasswordsNotMatch);
         }
         user = user
             .set_password(password)
-            .map_err(SettingsUpdateError::ValidationError)?;
+            .map_err(SettingsUpdateResult::ValidationError)?;
     }
 
     user.set_email(email)
-        .map_err(SettingsUpdateError::ValidationError)?
+        .map_err(SettingsUpdateResult::ValidationError)?
         .set_bio(bio)
-        .map_err(SettingsUpdateError::ValidationError)?
+        .map_err(SettingsUpdateResult::ValidationError)?
         .set_image(image)
-        .map_err(SettingsUpdateError::ValidationError)
+        .map_err(SettingsUpdateResult::ValidationError)
 }
 
 #[cfg(feature = "server")]
@@ -146,7 +146,7 @@ pub fn Settings() -> Element {
         .await;
 
         match update_result {
-            Ok(SettingsUpdateError::Successful) => {
+            Ok(SettingsUpdateResult::Successful) => {
                 update_status.set("Successful.".to_string());
                 if is_passwd_change() {
                     // let mut logged_user = use_context::<Signal<LoggedInUser>>();
@@ -157,10 +157,10 @@ pub fn Settings() -> Element {
                 }
                 settings_fut.restart();
             }
-            Ok(SettingsUpdateError::PasswordsNotMatch) => {
+            Ok(SettingsUpdateResult::PasswordsNotMatch) => {
                 update_status.set("Error: New password and Confirm password do not match!".into())
             }
-            Ok(SettingsUpdateError::ValidationError(err)) => update_status.set(err.to_string()),
+            Ok(SettingsUpdateResult::ValidationError(err)) => update_status.set(err.to_string()),
             Err(err) => update_status.set(format!("Unexpected error: {err}")),
         }
     };

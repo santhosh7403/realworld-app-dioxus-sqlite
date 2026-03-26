@@ -10,7 +10,7 @@
 
 # Background
 
-A fullstack application built with [Dioxus](https://dioxuslabs.com/) and SQLite, implementing a RealWorld blog platform.
+A full-stack application built with [Dioxus](https://dioxuslabs.com/) and SQLite, implementing a RealWorld blog platform.
 
 
 Some time back I published [ Leptos ](https://leptos.dev/) Rust framework based full stack demo web application as part of my Rust learning exercises. In continuation to  that, I saw an opportunity to port the same application to the [ Dioxus ](https://dioxuslabs.com/), another Rust framework, that is also one of the leading one in the Rust front-end framework [list](https://github.com/flosse/rust-web-framework-comparison?tab=readme-ov-file#frontend-frameworks-wasm). 
@@ -39,6 +39,7 @@ This app includes:
 - uuid
 - tailwindcss
 - fontawesome icons
+- JWT
 
 
 # Install and run
@@ -65,7 +66,7 @@ Primarily you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and stan
     cargo install cargo-binstall
     ```
 
-4. Install `dioxus-cli` (forcing version 0.6.3, otherwise the latest stable will install). In case of any issue, Please refer [here.](https://dioxuslabs.com/learn/0.6/getting_started/#install-the-dioxus-cli)
+4. Install `dioxus-cli` (forcing version 0.6.3, otherwise the latest stable will install). If you encounter any issues, Please refer [here.](https://dioxuslabs.com/learn/0.6/getting_started/#install-the-dioxus-cli)
 
     ```
     cargo binstall dioxus-cli
@@ -86,7 +87,7 @@ Set the DATABASE_URL env variable
 ```
 source .env
 ```
-In case of any DB issue, try the additional steps in this document [ README_DATABASE.md ](https://github.com/santhosh7403/realworld-app-dioxus-sqlite/blob/main/README_DATABASE.md) to initialize, drop, or recreate database.
+If you encounter any database issues, try the additional steps in this document [ README_DATABASE.md ](https://github.com/santhosh7403/realworld-app-dioxus-sqlite/blob/main/README_DATABASE.md) to initialize, drop, or recreate database.
 
 ## Run
 
@@ -94,7 +95,10 @@ You may now build and run the application:
 ```
 dx serve
 ```
-```
+<details>
+<summary>Click to view terminal output example</summary>
+
+```bash
 santhosh@fedora:~/my_github_repos/realworld-app-dioxus-sqlite$ dx serve
 warning: Waiting for cargo-metadata...
 15:03:09 [dev] -----------------------------------------------------------------
@@ -137,6 +141,8 @@ warning: Waiting for cargo-metadata...
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 
 ```
+</details>
+
 # Application access
 
 
@@ -162,7 +168,7 @@ The Full-Text Search feature covers three fields from the articles table. If you
 
 # Tailwind CSS
 
-The styling of this application UI uses Tailwind CSS. Tailwind allows you to style your elements with CSS utility classes. The `tailwind.css` file in project root folder links where the source files are located and the `tailwind.css` file in assets folder where the generated output CSS.
+The styling of this application UI uses Tailwind CSS. Tailwind allows you to style your elements with CSS utility classes. The `tailwind.css` file in the project root folder links where the source files are located and the `tailwind.css` file in assets folder where the generated output CSS.
 
 The output tailwind.css is generated from source CSS utility classes using a standalone Tailwind CSS CLI binary. there are other options available; please refer to this [link for other options.](https://dioxuslabs.com/learn/0.7/guides/utilities/tailwind)
 
@@ -172,10 +178,32 @@ The standalone Tailwind css utility can be downloaded from [here.](https://githu
 santhosh@fedora:~/realworld-app-dioxus-sqlite$ ~/Downloads/tailwindcss-linux-x64 -i input.css -o assets/tailwind.css
 ≈ tailwindcss v4.1.17
 ```
-This step is only required if you are making any changes to CSS classes or adding/changing UI elements.
+**Note**: This step is only required if you are making any changes to CSS classes or adding/changing UI elements. Also, as of Dioxus 0.7, DX automatically detects if your project is using TailwindCSS if it finds a file called "tailwind.css" at the root of your project [reference document](https://dioxuslabs.com/learn/0.7/essentials/ui/styling#tailwind).
 
-# Inspiration and Thanks
+## 🏗️ Other Variants
 
-The base of this app is from [ here ](https://github.com/Bechma/realworld-leptos), though there may be other original versions elsewhere; I am not certain.
+If you are looking for this same application with different frameworks or databases, check out these versions:
 
-I initially started this as leptos06 to 08 upgrade of this app, as my learning progressed and want to try out more experiments. The overall user interface changed, incorporating modal windows, Tailwind CSS and FontAwesome icons, re-wired pages, some functionality changes etc. I currently added sqlite supported FTS5 (Full-Text Search) feature to enable a wide search (see the screenshot above). Search results pagination changed to a new way to avoid results page reload and the application is now being ported to Dioxus as the framework.Dark mode toggle with persistent user preferences (theme and items-per-page count stored in database for logged-in users, localStorage for guests)
+| Framework | Database | Auth Type | Repository |
+| :--- | :--- | :--- | :--- |
+| **Dioxus** | SQLite | JWT | *This Repository* |
+| **Dioxus** | SQLite | Session | [View Repo](https://github.com/santhosh7403/axum-session-auth=realworld-app-dioxus-sqlite) |
+| **Leptos** | PostgreSQL | Session | [View Repo](https://github.com/santhosh7403/axum-session-auth-realworld-app-leptos-postgres)|
+| **Leptos** | PostgreSQL | JWT | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum) |
+| **Leptos** | SQLite | JWT | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) |
+
+## 🙏 Inspiration and Acknowledgements
+
+The foundational structure of this application is derived from the realworld example by [Bechma/realworld-leptos](https://github.com/Bechma/realworld-leptos), with appreciation to any antecedent projects.
+
+This particular version was initiated during the transition from Leptos 0.6 to 0.7 and up as a personal learning exercise. It has since undergone significant experimentation and refinement, including:
+
+*   A complete user interface redesign utilizing tailwindcss and fontawesome icons.
+
+*   Implementation of modal windows and re-wired page navigation.
+
+*   Integration of SQLite FTS5 for comprehensive full-text search capabilities.
+
+*   An updated, non-reloading pagination method for search results.
+
+*   Dark mode styling and user prefernce persistence.
