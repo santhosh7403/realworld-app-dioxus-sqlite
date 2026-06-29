@@ -26,26 +26,28 @@ To ensure it runs in a few simple steps, backend DB is in SQLite ([a practical c
 
 Before proceeding, you may take a look at the screenshots here. This will give you a quick glance at the app so you can decide.
 
+## 🛠️ Key Technologies & Features
 
-This app includes:
+This application leverages the following core technologies and features:
 
-- Dioxus
-- axum
-- SSR
-- sqlite
-- fts5
-- Modal Windows
-- argon2 (password encrypt)
-- uuid
-- tailwindcss
-- fontawesome icons
-- JWT
+* Dioxus
+* axum
+* SSR
+* SQLite
+* fts5
+* Modal Windows
+* argon2 (password encrypt)
+* uuid
+* tailwindcss
+* fontawesome icons
+* nanoid (password reset token)
+* JWT for authentication
 
 
-# Install and run
+# ⚙️ Install and run
 
 ## Tools
-Primarily you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and standard system dependencies.
+To get started, you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and standard system dependencies.
 
 1. Install Rust compiler and `stable` toolchain.
 
@@ -55,7 +57,7 @@ Primarily you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and stan
     rustup toolchain install stable
     ```
 
-2. Install `wasm32-unknown-unknown` Rust target -  add the ability to compile Rust to WebAssembly
+2. Install `wasm32-unknown-unknown` Rust target -  to enable compiling Rust to WebAssembly
 
     ```
     rustup target add wasm32-unknown-unknown
@@ -66,11 +68,13 @@ Primarily you will need `rust` , `dioxus-cli`, `wasm32-unknown-unknown` and stan
     cargo install cargo-binstall
     ```
 
-4. Install `dioxus-cli` (forcing version 0.6.3, otherwise the latest stable will install). If you encounter any issues, Please refer [here.](https://dioxuslabs.com/learn/0.6/getting_started/#install-the-dioxus-cli)
+4. Install `dioxus-cli`  If you encounter any issues, Please refer [here.](https://dioxuslabs.com/learn/0.7/getting_started/#install-the-dioxus-cli)
 
     ```
     cargo binstall dioxus-cli
     ```
+    > Note: The above command installs the latest stable version of `dioxus-cli`. To install a specific version, use `cargo install dioxus-cli==<version>`.*
+
 
 
 ## Clone
@@ -170,27 +174,30 @@ The Full-Text Search feature covers three fields from the articles table. If you
 
 The styling of this application UI uses Tailwind CSS. Tailwind allows you to style your elements with CSS utility classes. The `tailwind.css` file in the project root folder links where the source files are located and the `tailwind.css` file in assets folder where the generated output CSS.
 
-The output tailwind.css is generated from source CSS utility classes using a standalone Tailwind CSS CLI binary. there are other options available; please refer to this [link for other options.](https://dioxuslabs.com/learn/0.7/guides/utilities/tailwind)
+The output tailwind.css is generated from source CSS utility classes using a standalone Tailwind CSS CLI binary.For other options, please refer to this [link for other options.](https://dioxuslabs.com/learn/0.7/guides/utilities/tailwind)
 
 The standalone Tailwind css utility can be downloaded from [here.](https://github.com/tailwindlabs/tailwindcss/releases)
 
 ```
-santhosh@fedora:~/realworld-app-dioxus-sqlite$ ~/Downloads/tailwindcss-linux-x64 -i input.css -o assets/tailwind.css
+santhosh@fedora:~/axum-session-auth-realworld-app-dioxus-sqlite$ ~/Downloads/tailwindcss-linux-x64 -i input.css -o assets/tailwind.css
 ≈ tailwindcss v4.1.17
 ```
-**Note**: This step is only required if you are making any changes to CSS classes or adding/changing UI elements. Also, as of Dioxus 0.7, DX automatically detects if your project is using TailwindCSS if it finds a file called "tailwind.css" at the root of your project [reference document](https://dioxuslabs.com/learn/0.7/essentials/ui/styling#tailwind).
+> **Note**: This step is only required if you are making any changes to CSS classes or adding/changing UI elements. Also, as of Dioxus 0.7.x, `dx serve` automatically detects if your project is using TailwindCSS if it finds a file called "tailwind.css" at the root of your project and installs it automatically and builds the CSS for you when needed. Check the [reference document](https://dioxuslabs.com/learn/0.7/essentials/ui/styling#tailwind) for more info.
 
 ## 🏗️ Other Variants
 
 If you are looking for this same application with different frameworks or databases, check out these versions:
 
-| Framework | Database | Auth Type | Repository |
-| :--- | :--- | :--- | :--- |
-| **Dioxus** | SQLite | JWT | *This Repository* |
-| **Dioxus** | SQLite | Session | [View Repo](https://github.com/santhosh7403/axum-session-auth=realworld-app-dioxus-sqlite) |
-| **Leptos** | PostgreSQL | Session | [View Repo](https://github.com/santhosh7403/axum-session-auth-realworld-app-leptos-postgres)|
-| **Leptos** | PostgreSQL | JWT | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum) |
-| **Leptos** | SQLite | JWT | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) |
+| Framework | Database | Auth Type | Auth Crates | Special Feature | Repository |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| **Dioxus** | SQLite | JWT | jsonwebtoken | | *This Repository* |
+| **Dioxus** | SQLite | Session | axum_session, axum_session_auth | | [View Repo](https://github.com/santhosh7403/axum-session-auth-realworld-app-dioxus-sqlite) |
+| **Dioxus** | SQLite | Session | tower_sessions, axum_login | superadmin, fine grained authorization | [View Repo](https://github.com/santhosh7403/tower-sessions-axum-login-realworld-app-dioxus-sqlite) |
+| **Dioxus** | SQLite | PASETO | pasetors | superadmin, fine grained authorization | [View Repo](https://github.com/santhosh7403/paseto-auth-realworld-app-dioxus-sqlite) |
+| **Leptos** | PostgreSQL | Session | axum_session, axum_session_auth | | [View Repo](https://github.com/santhosh7403/axum-session-auth-realworld-app-leptos-postgres)|
+| **Leptos** | PostgreSQL | JWT | jsonwebtoken | | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum) |
+| **Leptos** | SQLite | JWT | jsonwebtoken | | [View Repo](https://github.com/santhosh7403/realworld-app-leptos-axum-sqlite) |
+
 
 ## 🙏 Inspiration and Acknowledgements
 
@@ -206,4 +213,4 @@ This particular version was initiated during the transition from Leptos 0.6 to 0
 
 *   An updated, non-reloading pagination method for search results.
 
-*   Dark mode styling and user prefernce persistence.
+*   Dark mode styling and user preference persistence.
